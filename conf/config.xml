@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<root>
+  <!-- log config -->
+  <log>
+    <!-- STDOUT, FILE, BOTH -->
+    <log_mode>FILE</log_mode>
+
+    <!-- output path -->
+    <log_path>./</log_path>
+    
+    <!-- single log file capacity (MB) -->
+    <log_max_size>5</log_max_size>
+
+    <!-- log level -->
+    <log_level>DEBUG</log_level>
+
+    <!-- log output interval (ms) -->
+    <log_sync_interval>500</log_sync_interval>
+  </log>
+
+</root>

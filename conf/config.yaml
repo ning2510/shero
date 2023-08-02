@@ -1,0 +1,7 @@
+log:
+    log_mode: 1
+    log_path: ./
+    log_max_size: 5
+    log_level: DEBUG
+    log_sync_interval: 500
+

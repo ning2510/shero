@@ -9,7 +9,7 @@
 
 
 int main(int argc, char **argv) {
-
+    // shero::LoggerManager::setDefaultLogger(false);
     std::cout << "id = " << shero::GetThreadId() << std::endl;
     usleep(100);
 

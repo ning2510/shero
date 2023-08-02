@@ -5,6 +5,7 @@
 #include "shero/thread.h"
 #include "shero/singleton.h"
 
+#include <iostream>
 #include <queue>
 #include <vector>
 #include <memory>
@@ -14,27 +15,32 @@
 #include <semaphore.h>
 #include <condition_variable>
 
+#define SHERO_LOGGER_ROOT shero::LoggerMgr::GetInstance()->getLogger()
+
 #define LOG_DEBUG \
-    shero::LogEventWrap(std::make_shared<shero::LogEvent>( \
-            __LINE__, __FILE__, shero::LogLevel::Level::DEBUG)).getSS()
+    if(SHERO_LOGGER_ROOT && shero::LogLevel::DEBUG >= SHERO_LOGGER_ROOT->getLevel()) \
+        shero::LogEventWrap(std::make_shared<shero::LogEvent>( \
+                __LINE__, __FILE__, shero::LogLevel::Level::DEBUG)).getSS()
 
 #define LOG_INFO \
-    shero::LogEventWrap(std::make_shared<shero::LogEvent>( \
-            __LINE__, __FILE__, shero::LogLevel::Level::INFO)).getSS()
+    if(SHERO_LOGGER_ROOT && shero::LogLevel::INFO >= SHERO_LOGGER_ROOT->getLevel()) \
+        shero::LogEventWrap(std::make_shared<shero::LogEvent>( \
+                __LINE__, __FILE__, shero::LogLevel::Level::INFO)).getSS()
 
 #define LOG_WARN \
-    shero::LogEventWrap(std::make_shared<shero::LogEvent>( \
-            __LINE__, __FILE__, shero::LogLevel::Level::WARM)).getSS()
+    if(SHERO_LOGGER_ROOT && shero::LogLevel::WARN >= SHERO_LOGGER_ROOT->getLevel()) \
+        shero::LogEventWrap(std::make_shared<shero::LogEvent>( \
+                __LINE__, __FILE__, shero::LogLevel::Level::WARN)).getSS()
 
 #define LOG_ERROR \
-    shero::LogEventWrap(std::make_shared<shero::LogEvent>( \
-            __LINE__, __FILE__, shero::LogLevel::Level::ERROR)).getSS()
+    if(SHERO_LOGGER_ROOT && shero::LogLevel::ERROR >= SHERO_LOGGER_ROOT->getLevel()) \
+        shero::LogEventWrap(std::make_shared<shero::LogEvent>( \
+                __LINE__, __FILE__, shero::LogLevel::Level::ERROR)).getSS()
 
 #define LOG_FATAL \
-    shero::LogEventWrap(std::make_shared<shero::LogEvent>( \
-            __LINE__, __FILE__, shero::LogLevel::Level::FATAL)).getSS()
-
-#define SHERO_LOGGER_ROOT shero::LoggerMgr::GetInstance()->getLogger()
+    if(SHERO_LOGGER_ROOT && shero::LogLevel::FATAL >= SHERO_LOGGER_ROOT->getLevel()) \
+        shero::LogEventWrap(std::make_shared<shero::LogEvent>( \
+                __LINE__, __FILE__, shero::LogLevel::Level::FATAL)).getSS()
 
 namespace shero {
 
@@ -44,13 +50,26 @@ public:
         UNKNOW = 0,
         DEBUG = 1,
         INFO = 2,
-        WARM = 3,
+        WARN = 3,
         ERROR = 4,
         FATAL = 5,
     };
 
     static const std::string Level2String(LogLevel::Level level);
     static LogLevel::Level String2Level(const std::string &str);
+};
+
+class LogMode {
+public:
+    enum Mode {
+        UNKNOW = 0,
+        STDOUT = 1,
+        FILE = 2,
+        BOTH = 3
+    };
+
+    static const std::string Mode2String(LogMode::Mode mode);
+    static LogMode::Mode String2Mode(const std::string &str);
 };
 
 class LogEvent {
@@ -103,21 +122,32 @@ public:
     typedef std::shared_ptr<AsyncLogger> ptr;
     typedef Mutex MutexType;
 
-    AsyncLogger(const char *filePath, int32_t maxSize, int32_t interval);
+    AsyncLogger(LogMode::Mode mode, const char *filePath, int32_t maxSize, int32_t interval);
     ~AsyncLogger();
 
     void stop();
     void join();
     void push(std::vector<std::string> &buffer);
-    std::string getDate();
 
     static void *mainLoop(void *arg);
+
+    std::string getDate();
+    LogMode::Mode getMode() const { return m_mode; }
+    int32_t getMaxSize() const { return m_maxSize; }
+    int32_t getInterval() const { return m_interval; }
+    int32_t getNo() const { return m_no; }
+    const char *getFilePath() const { return m_filePath; }
+
+    bool isStop() const { return m_stop; }
+    bool isReOpen() const { return m_reopen; }
 
 public:
     std::queue<std::vector<std::string> > m_queue;
 
 private:
     const char *m_filePath;
+    // 0: stdout, 1: file, 2: both
+    LogMode::Mode m_mode;
     int32_t m_maxSize;
     int32_t m_interval;
     int32_t m_no;
@@ -139,7 +169,8 @@ public:
     typedef std::shared_ptr<Logger> ptr;
     typedef Mutex MutexType;
     // 5MB, 500ms
-    Logger(const char *filePath, int32_t maxSize, int32_t interval, LogLevel::Level level);
+    Logger(LogMode::Mode mode, const char *filePath, 
+        int32_t maxSize, int32_t interval, LogLevel::Level level);
     ~Logger();
 
     void log(const std::string &msg);
@@ -158,18 +189,23 @@ private:
 class LoggerManager {
 public:
     LoggerManager() {
-        reset();
+        if(m_isDefault) {
+            reset();
+        }
     }
 
-    void reset(const char *filePath = "./", int32_t maxSize = 5 * 1024 * 1024, 
-            int32_t interval = 500, LogLevel::Level level = LogLevel::Level::DEBUG) {
-        g_logger.reset(new Logger(filePath, maxSize, interval, level));
+    void reset(LogMode::Mode mode = LogMode::Mode::FILE, const char *filePath = "./", 
+            int32_t maxSize = 5 * 1024 * 1024, int32_t interval = 500, 
+            LogLevel::Level level = LogLevel::Level::DEBUG) {
+        g_logger.reset(new Logger(mode, filePath, maxSize, interval, level));
     }
 
     Logger::ptr getLogger() const { return g_logger; }
+    static void setDefaultLogger(bool v) { m_isDefault = v; }
 
 private:
     Logger::ptr g_logger;
+    static bool m_isDefault;
 };
 
 typedef Singleton<LoggerManager> LoggerMgr;

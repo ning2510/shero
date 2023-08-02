@@ -57,6 +57,10 @@ public:
         pthread_mutex_unlock(&m_mutex);
     }
 
+    pthread_mutex_t *getMutex() {
+        return &m_mutex;
+    }
+
     ~Mutex() {
         pthread_mutex_destroy(&m_mutex);
     }
@@ -135,8 +139,8 @@ private:
 
 class RWMutex : public Noncopyable {
 public:
-    typedef ReadScopedLockImpl<RWMutex> WLock;
-    typedef WriteScopedLockImpl<RWMutex> RLock;
+    typedef ReadScopedLockImpl<RWMutex> WriteLock;
+    typedef WriteScopedLockImpl<RWMutex> ReadLock;
 
     RWMutex() {
         pthread_rwlock_init(&m_mutex, nullptr);

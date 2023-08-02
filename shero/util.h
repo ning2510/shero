@@ -5,6 +5,7 @@
 
 namespace shero {
 
+pid_t GetPid();
 pid_t GetThreadId();
 
 }   // namespace shero

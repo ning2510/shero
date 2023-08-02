@@ -9,7 +9,10 @@ SET(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 include_directories(.)
 
 SET(SRC_FILES
+    shero/log.cc
     shero/util.cc
+    shero/config.cc
+    shero/thread.cc
 )
 
 add_library(shero SHARED ${SRC_FILES})
@@ -18,5 +21,8 @@ SET(LIBS
     pthread
 )
 
-add_executable(test_mutex test/test_mutex.cc)
-target_link_libraries(test_mutex ${LIBS})
+add_executable(test_mutex_thread test/test_mutex_thread.cc)
+target_link_libraries(test_mutex_thread ${LIBS})
+
+add_executable(test_log test/test_log.cc)
+target_link_libraries(test_log ${LIBS})

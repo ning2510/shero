@@ -1,5 +1,241 @@
 #include "shero/log.h"
+#include "shero/util.h"
+
+#include <time.h>
+#include <sstream>
+#include <stdio.h>
+#include <unistd.h>
+#include <assert.h>
+#include <iostream>
 
 namespace shero {
+
+// LogLevel
+const std::string LogLevel::Level2String(LogLevel::Level l) {
+    switch(l) {
+#define XX(level) \
+        case LogLevel::Level::level: \
+            return #level;
+
+        XX(UNKNOW);
+        XX(DEBUG);
+        XX(INFO);
+        XX(WARM);
+        XX(ERROR);
+        XX(FATAL);
+#undef XX
+        default:
+            return "UNKNOW";
+    }
+}
+
+LogLevel::Level LogLevel::String2Level(const std::string &s) {
+#define XX(level, str) \
+    if(s == #str) { \
+        return LogLevel::Level::level; \
+    }
+
+    XX(UNKNOW, unknow);
+    XX(UNKNOW, UNKNOW);
+
+    XX(DEBUG, debug);
+    XX(DEBUG, DEBUG);
+    
+    XX(INFO, info);
+    XX(INFO, INFO);
+
+    XX(WARM, warn);
+    XX(WARM, WARM);
+
+    XX(ERROR, error);
+    XX(ERROR, ERROR);
+
+    XX(FATAL, fatal);
+    XX(FATAL, FATAL);
+#undef XX
+
+    return LogLevel::Level::UNKNOW;
+}
+
+// LogEvent
+LogEvent::LogEvent(int32_t line, const char *file, LogLevel::Level level)
+    : m_line(line),
+      m_file(file),
+      m_level(level) {
+}
+
+void LogEvent::log() {
+    m_ss << "\n";
+    SHERO_LOGGER_ROOT->log(m_ss.str());
+}
+
+std::stringstream &LogEvent::getSS() {
+    time_t now = time(0);
+    struct tm tm;
+    localtime_r(&now, &tm);
+    const char format[] = "%Y-%m-%d %H:%M:%S";
+    char buf[128] = {0};
+    strftime(buf, sizeof(buf), format, &tm);
+
+    m_ss << "[" << buf << "]\t"
+         << "[" << LogLevel::Level2String(m_level) << "]\t"
+         << "[" << GetPid() << "]\t"
+         << "[" << GetThreadId() << "]\t"
+         << "[" << 0 << "]\t"
+         << "[" << m_file << ":" << m_line << "]\t";
+
+    return m_ss;
+}
+
+// AsyncLogger
+AsyncLogger::AsyncLogger(const char *filePath, int32_t maxSize, int32_t interval)
+    : m_filePath(filePath),
+      m_maxSize(maxSize),
+      m_interval(interval),
+      m_no(0),
+      m_date(""),
+      m_thread(0),
+      m_stop(true),
+      m_reopen(true),
+      m_file(nullptr)  {
+    int rt = sem_init(&m_sem, 0, 0);
+    assert(rt == 0);
+    rt = pthread_cond_init(&m_cond, nullptr);
+    assert(rt == 0);
+
+    rt = pthread_create(&m_thread, nullptr, &AsyncLogger::mainLoop, this);
+    assert(rt == 0);
+    rt = sem_wait(&m_sem);
+    assert(rt == 0);
+}
+
+AsyncLogger::~AsyncLogger() {
+    stop();
+    sem_destroy(&m_sem);
+    pthread_cond_destroy(&m_cond);
+    // std::cout << "~AsyncLogger " << m_queue.size() << std::endl;
+}
+
+void AsyncLogger::stop() {
+    if(!m_stop) { 
+        m_stop = true;
+        pthread_cond_signal(&m_cond);
+    }
+    join();
+}
+
+void AsyncLogger::join() {
+    pthread_join(m_thread, nullptr);
+}
+
+std::string AsyncLogger::getDate() {
+    time_t now = time(0);
+    tm tm;
+    localtime_r(&now, &tm);
+    char format[] = "%Y%m%d";
+    char date[32] = {0};
+    strftime(date, sizeof(date), format, &tm);
+    return std::string(date);
+}
+
+void AsyncLogger::push(std::vector<std::string> &buffer) {
+    std::vector<std::string> tmp;
+    tmp.swap(buffer);
+
+    MutexType::Lock lock(m_mutex);
+    m_queue.push(tmp);
+    lock.unlock();
+
+    pthread_cond_signal(&m_cond);
+}
+
+void *AsyncLogger::mainLoop(void *arg) {
+    AsyncLogger *logger = reinterpret_cast<AsyncLogger *>(arg);
+    logger->m_stop = false;
+    int rt = sem_post(&logger->m_sem);
+    assert(rt == 0);
+
+    while(1) {
+        MutexType::Lock lock(logger->m_mutex);
+        while(logger->m_queue.empty() && !logger->m_stop) {
+            pthread_cond_wait(&logger->m_cond, logger->m_mutex.getMutex());
+        }
+        bool isStop = logger->m_stop;
+        if(isStop && logger->m_queue.empty()) {
+            lock.unlock();
+            break;
+        }
+        
+        std::vector<std::string> msg;
+        msg.swap(logger->m_queue.front());
+        logger->m_queue.pop();
+        lock.unlock();
+    
+        std::string date = logger->getDate();
+        if(date != logger->m_date) {
+            logger->m_no = 0;
+            logger->m_date = date;
+            logger->m_reopen = true;
+            if(logger->m_file) {
+                fclose(logger->m_file);
+            }
+        }
+
+        std::stringstream ss;
+        ss << logger->m_filePath << logger->m_date << "_" << logger->m_no << ".log"; 
+
+        if(logger->m_reopen || !logger->m_file) {
+            logger->m_file = fopen(ss.str().c_str(), "a");
+            assert(logger->m_file);
+            logger->m_reopen = false;
+        }
+
+        if(ftell(logger->m_file) > logger->m_maxSize) {
+            fclose(logger->m_file);
+
+            logger->m_no++;
+            std::stringstream ss2;
+            ss2 << logger->m_filePath << logger->m_date << "_" << logger->m_no << ".log";
+
+            logger->m_file = fopen(ss2.str().c_str(), "a");
+            assert(logger->m_file);
+            logger->m_reopen = false;
+        }
+
+
+        for(auto &i : msg) {
+            if(!i.empty()) {
+                fwrite(i.c_str(), 1, i.size(), logger->m_file);
+            }
+        }
+        fflush(logger->m_file);
+    }
+
+    if(logger->m_file) {
+        fclose(logger->m_file);
+        logger->m_file = nullptr;
+    }
+
+    return nullptr;
+}
+
+// Logger
+Logger::Logger(const char *filePath, int32_t maxSize, int32_t interval, LogLevel::Level level)
+    : m_level(level) {
+    m_asyncLogger = std::make_shared<AsyncLogger>(filePath, maxSize, interval);
+}
+
+Logger::~Logger() {
+    m_asyncLogger->stop();
+    // std::cout << "~Logger\n";
+}
+
+void Logger::log(const std::string &msg) {
+    MutexType::Lock lock(m_mutex);
+    m_buffer.push_back(msg);
+    lock.unlock();
+
+    m_asyncLogger->push(m_buffer);
+}
 
 }   // namespace shero

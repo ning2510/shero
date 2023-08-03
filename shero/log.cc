@@ -100,12 +100,7 @@ void LogEvent::log() {
 }
 
 std::stringstream &LogEvent::getSS() {
-    time_t now = time(0);
-    struct tm tm;
-    localtime_r(&now, &tm);
-    const char format[] = "%Y-%m-%d %H:%M:%S";
-    char buf[128] = {0};
-    strftime(buf, sizeof(buf), format, &tm);
+    std::string buf = Time2Str();
 
     m_ss << "[" << buf << "]\t"
          << "[" << LogLevel::Level2String(m_level) << "]\t"
@@ -164,17 +159,6 @@ void AsyncLogger::join() {
     pthread_join(m_thread, nullptr);
 }
 
-std::string AsyncLogger::getDate() {
-    time_t now = time(0);
-    tm tm;
-    memset(&tm, 0, sizeof(tm));
-    localtime_r(&now, &tm);
-    char format[] = "%Y%m%d";
-    char date[32] = {0};
-    strftime(date, sizeof(date), format, &tm);
-    return std::string(date);
-}
-
 void AsyncLogger::push(std::vector<std::string> &buffer) {
     std::vector<std::string> tmp;
     tmp.swap(buffer);
@@ -215,7 +199,7 @@ void *AsyncLogger::mainLoop(void *arg) {
         }
 
         if(logger->m_mode != LogMode::Mode::STDOUT) {
-            std::string date = logger->getDate();
+            std::string date = Date2Str();
             if(date != logger->m_date) {
                 logger->m_no = 0;
                 logger->m_date = date;

@@ -132,7 +132,6 @@ public:
 
     static void *mainLoop(void *arg);
 
-    std::string getDate();
     LogMode::Mode getMode() const { return m_mode; }
     int32_t getMaxSize() const { return m_maxSize; }
     int32_t getInterval() const { return m_interval; }

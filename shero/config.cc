@@ -44,11 +44,11 @@ void Config::LoadConf(std::string filePath) {
     SHERO_LOGGER_CONF->reset(m_mode, m_filePath.c_str(), m_maxSize, m_interval, m_level);
     m_init = true;
 
-    std::cout << "log_mode: " << (int32_t)m_mode << "\n"
-        << "log_max_size: " << m_maxSize << "\n"
-        << "log_sync_interval: " << m_interval << "\n"
-        << "log_level: " << m_level << "\n"
-        << "log_file_path: " << m_filePath << "\n";
+    // std::cout << "log_mode: " << (int32_t)m_mode << "\n"
+    //     << "log_max_size: " << m_maxSize << "\n"
+    //     << "log_sync_interval: " << m_interval << "\n"
+    //     << "log_level: " << m_level << "\n"
+    //     << "log_file_path: " << m_filePath << "\n";
 }
 
 bool Config::LoadYaml(const std::string &filePath) {

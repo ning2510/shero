@@ -25,7 +25,7 @@ public:
     int32_t getMaxSize() const { return m_maxSize; }
     int32_t getInterval() const { return m_interval; }
     LogLevel::Level getLevel() const { return m_level; }
-    // std::string getFilePath() const { return m_filePath; }
+    const std::string getFilePath() const { return m_filePath; }
 
 private:
     bool m_init;

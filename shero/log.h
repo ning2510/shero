@@ -16,6 +16,7 @@
 #include <condition_variable>
 
 #define SHERO_LOGGER_ROOT shero::LoggerMgr::GetInstance()->getLogger()
+#define SHERO_LOGGER_CONF shero::LoggerMgr::GetInstance()
 
 #define LOG_DEBUG \
     if(SHERO_LOGGER_ROOT && shero::LogLevel::DEBUG >= SHERO_LOGGER_ROOT->getLevel()) \

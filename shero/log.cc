@@ -2,8 +2,9 @@
 #include "shero/util.h"
 
 #include <time.h>
-#include <sstream>
 #include <stdio.h>
+#include <sstream>
+#include <string.h>
 #include <unistd.h>
 #include <assert.h>
 #include <iostream>
@@ -144,6 +145,10 @@ AsyncLogger::~AsyncLogger() {
     stop();
     sem_destroy(&m_sem);
     pthread_cond_destroy(&m_cond);
+    if(m_file) {
+        fclose(m_file);
+        m_file = nullptr;
+    }
     // std::cout << "~AsyncLogger " << m_queue.size() << std::endl;
 }
 
@@ -162,6 +167,7 @@ void AsyncLogger::join() {
 std::string AsyncLogger::getDate() {
     time_t now = time(0);
     tm tm;
+    memset(&tm, 0, sizeof(tm));
     localtime_r(&now, &tm);
     char format[] = "%Y%m%d";
     char date[32] = {0};
@@ -220,7 +226,7 @@ void *AsyncLogger::mainLoop(void *arg) {
             }
 
             std::stringstream ss;
-            ss << logger->m_filePath << logger->m_date << "_" << logger->m_no << ".log"; 
+            ss << logger->m_filePath << logger->m_date << "_" << logger->m_no << ".log";
 
             if(logger->m_reopen || !logger->m_file) {
                 logger->m_file = fopen(ss.str().c_str(), "a");

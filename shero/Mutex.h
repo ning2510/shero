@@ -1,7 +1,7 @@
 #ifndef __SHERO_MUTEX_H
 #define __SHERO_MUTEX_H
 
-#include "shero/noncopyable.h"
+#include "shero/Noncopyable.h"
 
 #include <pthread.h>
 

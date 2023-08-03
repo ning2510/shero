@@ -1,4 +1,4 @@
-#include "shero/config.h"
+#include "shero/Config.h"
 
 int main(int argc, char **argv) {
     if(argc > 1) {

@@ -1,15 +1,28 @@
-#include "shero/log.h"
-#include "shero/util.h"
+#include "shero/Log.h"
+#include "shero/Util.h"
 
 #include <time.h>
 #include <stdio.h>
 #include <sstream>
+#include <signal.h>
 #include <string.h>
 #include <unistd.h>
 #include <assert.h>
 #include <iostream>
 
 namespace shero {
+
+void Exit(int sig) {
+    exit(0);
+}
+
+struct _SignalIniter {
+    _SignalIniter() {
+        signal(SIGINT, Exit);
+    }
+};
+
+static _SignalIniter s_signal_initer;
 
 // LogLevel
 const std::string LogLevel::Level2String(LogLevel::Level l) {
@@ -114,7 +127,7 @@ std::stringstream &LogEvent::getSS() {
 
 // AsyncLogger
 AsyncLogger::AsyncLogger(LogMode::Mode mode, const char *filePath, 
-                int32_t maxSize, int32_t interval)
+                int32_t maxSize, int64_t interval)
     : m_filePath(filePath),
       m_mode(mode),
       m_maxSize(maxSize),
@@ -250,14 +263,14 @@ void *AsyncLogger::mainLoop(void *arg) {
 
 // Logger
 Logger::Logger(LogMode::Mode mode, const char *filePath, 
-        int32_t maxSize, int32_t interval, LogLevel::Level level)
+        int32_t maxSize, int64_t interval, LogLevel::Level level)
     : m_level(level) {
     m_asyncLogger = std::make_shared<AsyncLogger>(mode, filePath, maxSize, interval);
 }
 
 Logger::~Logger() {
     m_asyncLogger->stop();
-    // std::cout << "~Logger\n";
+    std::cout << "~Logger\n";
 }
 
 void Logger::log(const std::string &msg) {

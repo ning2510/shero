@@ -9,10 +9,10 @@ SET(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 include_directories(.)
 
 SET(SRC_FILES
-    shero/log.cc
-    shero/util.cc
-    shero/config.cc
-    shero/thread.cc
+    shero/Log.cc
+    shero/Util.cc
+    shero/Config.cc
+    shero/Thread.cc
 )
 add_library(shero SHARED ${SRC_FILES})
 

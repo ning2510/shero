@@ -1,9 +1,9 @@
 #ifndef __SHERO_LOG_H
 #define __SHERO_LOG_H
 
-#include "shero/mutex.h"
-#include "shero/thread.h"
-#include "shero/singleton.h"
+#include "shero/Mutex.h"
+#include "shero/Thread.h"
+#include "shero/Singleton.h"
 
 #include <iostream>
 #include <queue>
@@ -123,7 +123,7 @@ public:
     typedef std::shared_ptr<AsyncLogger> ptr;
     typedef Mutex MutexType;
 
-    AsyncLogger(LogMode::Mode mode, const char *filePath, int32_t maxSize, int32_t interval);
+    AsyncLogger(LogMode::Mode mode, const char *filePath, int32_t maxSize, int64_t interval);
     ~AsyncLogger();
 
     void stop();
@@ -134,7 +134,7 @@ public:
 
     LogMode::Mode getMode() const { return m_mode; }
     int32_t getMaxSize() const { return m_maxSize; }
-    int32_t getInterval() const { return m_interval; }
+    int64_t getInterval() const { return m_interval; }
     int32_t getNo() const { return m_no; }
     const char *getFilePath() const { return m_filePath; }
 
@@ -149,7 +149,7 @@ private:
     // 0: stdout, 1: file, 2: both
     LogMode::Mode m_mode;
     int32_t m_maxSize;
-    int32_t m_interval;
+    int64_t m_interval;
     int32_t m_no;
     std::string m_date;
     pthread_t m_thread;
@@ -170,7 +170,7 @@ public:
     typedef Mutex MutexType;
     // 5MB, 500ms
     Logger(LogMode::Mode mode, const char *filePath, 
-        int32_t maxSize, int32_t interval, LogLevel::Level level);
+        int32_t maxSize, int64_t interval, LogLevel::Level level);
     ~Logger();
 
     void log(const std::string &msg);
@@ -195,7 +195,7 @@ public:
     }
 
     void reset(LogMode::Mode mode = LogMode::Mode::FILE, const char *filePath = "./", 
-            int32_t maxSize = 5 * 1024 * 1024, int32_t interval = 500, 
+            int32_t maxSize = 5 * 1024 * 1024, int64_t interval = 500, 
             LogLevel::Level level = LogLevel::Level::DEBUG) {
         g_logger.reset(new Logger(mode, filePath, maxSize, interval, level));
     }

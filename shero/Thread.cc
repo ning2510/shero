@@ -1,5 +1,5 @@
-#include "shero/util.h"
-#include "shero/thread.h"
+#include "shero/Util.h"
+#include "shero/Thread.h"
 
 #include <assert.h>
 #include <iostream>

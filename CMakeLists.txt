@@ -31,14 +31,4 @@ SET(LIBS
     ${TINYXML}
 )
 
-add_executable(test_mutex_thread test/test_mutex_thread.cc)
-target_link_libraries(test_mutex_thread ${LIBS})
-
-add_executable(test_log test/test_log.cc)
-target_link_libraries(test_log ${LIBS})
-
-add_executable(test_config test/test_config.cc)
-target_link_libraries(test_config ${LIBS})
-
-add_executable(test_timer test/test_timer.cc)
-target_link_libraries(test_timer ${LIBS})
+add_subdirectory(test)

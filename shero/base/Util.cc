@@ -1,5 +1,5 @@
-#include "shero/Util.h"
-#include "shero/Macro.h"
+#include "shero/base/Util.h"
+#include "shero/base/Macro.h"
 
 #include <string.h>
 #include <unistd.h>

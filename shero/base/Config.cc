@@ -1,4 +1,4 @@
-#include "shero/Config.h"
+#include "shero/base/Config.h"
 
 namespace shero {
 

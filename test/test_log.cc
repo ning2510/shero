@@ -1,5 +1,5 @@
-#include "shero/Log.h"
-#include "shero/Util.h"
+#include "shero/base/Log.h"
+#include "shero/base/Util.h"
 
 #include <unistd.h>
 #include <iostream>

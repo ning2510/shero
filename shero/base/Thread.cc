@@ -1,8 +1,7 @@
-#include "shero/Util.h"
-#include "shero/Thread.h"
+#include "shero/base/Util.h"
+#include "shero/base/Thread.h"
 
 #include <assert.h>
-#include <iostream>
 
 namespace shero {
 
@@ -15,6 +14,7 @@ Thread::Thread(Callback cb)
 
 Thread::~Thread() {
     join();
+    // std::cout << "~Thread " << m_tid << std::endl;
 }
 
 void Thread::start() {

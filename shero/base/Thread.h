@@ -1,7 +1,7 @@
 #ifndef __SHERO_THREAD_H
 #define __SHERO_THREAD_H
 
-#include "shero/Noncopyable.h"
+#include "shero/base/Noncopyable.h"
 
 #include <memory>
 #include <pthread.h>

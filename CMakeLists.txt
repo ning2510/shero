@@ -9,10 +9,15 @@ SET(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 include_directories(.)
 
 SET(SRC_FILES
-    shero/Log.cc
-    shero/Util.cc
-    shero/Config.cc
-    shero/Thread.cc
+    shero/base/Log.cc
+    shero/base/Util.cc
+    shero/base/Timer.cc
+    shero/base/Config.cc
+    shero/base/Thread.cc
+    shero/net/Poller.cc
+    shero/net/Channel.cc
+    shero/net/EventLoop.cc
+    shero/net/EPollPoller.cc
 )
 add_library(shero SHARED ${SRC_FILES})
 
@@ -34,3 +39,6 @@ target_link_libraries(test_log ${LIBS})
 
 add_executable(test_config test/test_config.cc)
 target_link_libraries(test_config ${LIBS})
+
+add_executable(test_timer test/test_timer.cc)
+target_link_libraries(test_timer ${LIBS})

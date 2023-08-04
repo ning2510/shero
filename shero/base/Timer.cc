@@ -1,6 +1,7 @@
-#include "shero/Log.h"
-#include "shero/Util.h"
-#include "shero/Timer.h"
+#include "shero/base/Log.h"
+#include "shero/base/Util.h"
+#include "shero/base/Timer.h"
+#include "shero/net/EventLoop.h"
 
 #include <vector>
 #include <unistd.h>
@@ -24,7 +25,7 @@ bool TimerEvent::Comparator::operator()(const TimerEvent::ptr &l, const TimerEve
     return l->getArrive() > r->getArrive() ? false : l.get() < r.get();
 }
 
-TimerEvent::TimerEvent(int64_t interval, std::function<void()> cb, bool recycle, Timer *timer)
+TimerEvent::TimerEvent(uint64_t interval, std::function<void()> cb, bool recycle, Timer *timer)
     : m_recycle(recycle),
       m_arrive(GetCurrentMS() + interval),
       m_interval(interval),
@@ -55,34 +56,42 @@ void TimerEvent::resetArrive() {
 }
 
 // Timer
-Timer::Timer() {
+Timer::Timer(EventLoop *loop /*= nullptr*/) {
     m_fd = timerfd_create(CLOCK_MONOTONIC, TFD_NONBLOCK | TFD_CLOEXEC);
     if(m_fd < 0) {
         LOG_ERROR << "timerfd_create error, strerror = " << strerror(errno);
     }
+    LOG_DEBUG << "timerfd_create susscess, fd = " << m_fd;
 
-    // TODO: register in epoll
-    
-    m_readCb = std::bind(&Timer::onTimer, this);
+    loop = loop ? loop : EventLoop::GetEventLoop();
+    if(!loop) {
+        LOG_FATAL << "Please create EventLoop instance in this thread";
+    }
+    m_channel = new Channel(loop, m_fd);
+    m_channel->addListenEvents(IOEvent::READ);
+    m_channel->setReadCallback(std::bind(&Timer::onTimer, this));
 }
 
 Timer::~Timer() {
-    // TODO: unregister from epoll
-
+    m_channel->removeFromLoop();
+    if(m_channel) {
+        delete m_channel;
+        m_channel = nullptr;
+    }
     close(m_fd);
 }
 
-void Timer::addTimer(TimerEvent::ptr timer) {
-    bool reset = false;
+void Timer::addTimer(TimerEvent::ptr timer, bool reset /*= true*/) {
+    bool need = false;
 
     RWMutexType::WriteLock lock(m_mutex);
     if(m_timers.empty() || timer->getArrive() < (*m_timers.begin())->getArrive()) {
-        reset = true;
+        need = true;
     }
     m_timers.insert(timer);
     lock.unlock();
 
-    if(reset) {
+    if(need && reset) {
         resetArriveTime();
     }
 }
@@ -130,9 +139,12 @@ void Timer::resetArriveTime() {
 
     uint64_t now = GetCurrentMS();
     RWMutexType::WriteLock wlock(m_mutex);
-    while((*m_timers.begin())->getArrive() < now) {
+    while(!m_timers.empty() && (*m_timers.begin())->getArrive() < now) {
         auto it = m_timers.begin();
         m_timers.erase(it);
+    }
+    if(m_timers.empty()) {
+        return ;
     }
 
     uint64_t diff = (*m_timers.begin())->getArrive() - now;
@@ -148,6 +160,7 @@ void Timer::resetArriveTime() {
     if(rt < 0) {
         LOG_ERROR << "timerfd_settime error, strerror = " << strerror(errno);
     }
+    LOG_DEBUG << "timerfd_settime success, fd = " << m_fd;
 }
 
 void Timer::onTimer() {
@@ -168,14 +181,15 @@ void Timer::onTimer() {
         }
         readyTimer.push_back(*it);
     }
-    it = (*it)->getArrive() <= now ? m_timers.end() : it;
     m_timers.erase(m_timers.begin(), it);
     lock.unlock();
 
     for(auto &i : recyTimer) {
-        addTimer(i);
+        // 这里 addTimer 时 reset 如果为 true，则有可能执行两次 resetArriveTime()
+        addTimer(i, false);
     }
 
+    // Timer 回调触发后一定会 resetArriveTime()
     resetArriveTime();
 
     for(auto &i : readyTimer) {

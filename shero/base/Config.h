@@ -1,8 +1,8 @@
 #ifndef __SHERO_CONFIG_H
 #define __SHERO_CONFIG_H
 
-#include "shero/Log.h"
-#include "shero/Mutex.h"
+#include "shero/base/Log.h"
+#include "shero/base/Mutex.h"
 
 #include <memory>
 #include <unordered_map>

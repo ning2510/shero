@@ -1,9 +1,9 @@
 #ifndef __SHERO_LOG_H
 #define __SHERO_LOG_H
 
-#include "shero/Mutex.h"
-#include "shero/Thread.h"
-#include "shero/Singleton.h"
+#include "shero/base/Mutex.h"
+#include "shero/base/Thread.h"
+#include "shero/base/Singleton.h"
 
 #include <iostream>
 #include <queue>

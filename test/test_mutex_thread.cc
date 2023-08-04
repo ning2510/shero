@@ -1,6 +1,6 @@
-#include "shero/Util.h"
-#include "shero/Mutex.h"
-#include "shero/Thread.h"
+#include "shero/base/Util.h"
+#include "shero/base/Mutex.h"
+#include "shero/base/Thread.h"
 
 #include <iostream>
 

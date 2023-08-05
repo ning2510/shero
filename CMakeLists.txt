@@ -14,6 +14,7 @@ SET(SRC_FILES
     shero/base/Timer.cc
     shero/base/Config.cc
     shero/base/Thread.cc
+    shero/base/Buffer.cc
     shero/net/Socket.cc
     shero/net/Poller.cc
     shero/net/Address.cc

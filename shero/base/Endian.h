@@ -12,6 +12,12 @@
 namespace shero {
 
 template<class T>
+typename std::enable_if<sizeof(T) == sizeof(uint8_t), T>::type
+byteswap(T value) {
+    return value;
+}
+
+template<class T>
 typename std::enable_if<sizeof(T) == sizeof(uint16_t), T>::type
 byteswap(T value) {
     return (T)bswap_16((uint16_t)value);

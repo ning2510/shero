@@ -52,17 +52,18 @@ bool Socket::isInvalid() {
     return m_fd == -1;
 }
 
-void Socket::init() {
+bool Socket::init() {
     // socket   bind    setsocket
     m_fd = socket(m_domain, m_type, m_protocol);
     if(m_fd < 0) {
         LOG_ERROR << "::socket() error, strerror = " << strerror(errno);
-        return ;
+        return false;
     }
     setReuseAddr(true);
     if(m_type == SOCK_STREAM) {
         setTcpNoDelay(true);
     }
+    return true;
 }
 
 bool Socket::bind(Address::ptr localAddr) {
@@ -91,7 +92,7 @@ bool Socket::listen(int32_t backlog /*= SOMAXCONN*/) {
     return rt >= 0;
 }
 
-int32_t Socket::accept(Address::ptr peerAddr) {
+int32_t Socket::accept(Address::ptr peerAddr, bool setNonBlock /*= false*/) {
     if(isInvalid()) {
         LOG_ERROR << "Socket::accept() invalid socket";
         return false;
@@ -102,7 +103,12 @@ int32_t Socket::accept(Address::ptr peerAddr) {
     bzero(&addr, sizeof(addr));
 
     // set connfd nonblock
-    int32_t connfd = ::accept4(m_fd, (sockaddr *)&addr, &len, SOCK_NONBLOCK | SOCK_CLOEXEC);
+    int32_t connfd;
+    if(setNonBlock) {
+        connfd = ::accept4(m_fd, (sockaddr *)&addr, &len, SOCK_NONBLOCK | SOCK_CLOEXEC);
+    } else {
+        connfd = ::accept(m_fd, (sockaddr *)&addr, &len);
+    }
     if(connfd < 0) {
         LOG_ERROR << "::accept4() error, strerror = " << strerror(errno);
     } else {
@@ -162,12 +168,12 @@ Address::ptr Socket::getRemoteAddr() {
 
 void Socket::setTcpNoDelay(bool on) {
     int32_t optval = on ? 1 : 0;
-    setsockopt(m_fd, IPPROTO_TCP, TCP_NODELAY, &on, sizeof(on));
+    setsockopt(m_fd, IPPROTO_TCP, TCP_NODELAY, &optval, sizeof(optval));
 }
 
 void Socket::setReuseAddr(bool on) {
     int32_t optval = on ? 1 : 0;
-    setsockopt(m_fd, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on));
+    setsockopt(m_fd, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(optval));
 }
 
 void Socket::setReusePort(bool on) {

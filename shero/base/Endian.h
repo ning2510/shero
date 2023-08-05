@@ -46,7 +46,7 @@ T byteswapOnBigEndian(T v) {
     return byteswap(v);
 }
 
-#else SHERO_BYTE_ORDER == SHERO_LITTLE_ENDIAN
+#else
 template<class T>
 T byteswapOnLittleEndian(T v) {
     return byteswap(v);

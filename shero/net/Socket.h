@@ -22,12 +22,12 @@ public:
     Socket(int32_t domain = AF_INET, int32_t type = SOCK_STREAM, int32_t protocol = 0);
     ~Socket();
 
-    void init();
+    bool init();
     void close();
     bool isInvalid();
     bool bind(Address::ptr localAddr);
     bool listen(int32_t backlog = SOMAXCONN);
-    int32_t accept(Address::ptr peerAddr);
+    int32_t accept(Address::ptr peerAddr, bool setNonBlock = false);
     bool connect(Address::ptr peerAddr);
 
     Address::ptr getLocalAddr();

@@ -10,18 +10,11 @@ Address::Address(const sockaddr_in &addr)
     : m_addr(addr) {
 }
 
-Address::Address(uint16_t port, const char *address /*= "0.0.0.0"*/) {
+Address::Address(uint16_t port /*= 0*/, const char *address /*= "0.0.0.0"*/) {
     bzero(&m_addr, sizeof(m_addr));
     m_addr.sin_family = AF_INET;
     m_addr.sin_port = byteswapOnLittleEndian(port);
     m_addr.sin_addr.s_addr = inet_addr(address);
-}
-
-Address::Address(uint16_t port /*= 0*/, uint32_t address /*= INADDR_ANY*/) {
-    bzero(&m_addr, sizeof(m_addr));
-    m_addr.sin_family = AF_INET;
-    m_addr.sin_port = byteswapOnLittleEndian(port);
-    m_addr.sin_addr.s_addr = byteswapOnLittleEndian(address);
 }
 
 std::string Address::toIP() {

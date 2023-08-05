@@ -12,9 +12,8 @@ namespace shero {
 class Address {
 public:
     typedef std::shared_ptr<Address> ptr;
-    explicit Address(const sockaddr_in &addr);
-    explicit Address(uint16_t port, const char *address = "0.0.0.0");
-    explicit Address(uint16_t port = 0, uint32_t address = INADDR_ANY);
+    Address(const sockaddr_in &addr);
+    Address(uint16_t port = 0, const char *address = "0.0.0.0");
 
     int32_t getFamily() const { return m_addr.sin_family; }
 

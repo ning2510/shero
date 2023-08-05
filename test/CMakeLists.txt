@@ -9,3 +9,9 @@ target_link_libraries(test_config ${LIBS})
 
 add_executable(test_timer ./test_timer.cc)
 target_link_libraries(test_timer ${LIBS})
+
+add_executable(test_socket_server ./test_socket_server.cc)
+target_link_libraries(test_socket_server ${LIBS})
+
+add_executable(test_socket_client ./test_socket_client.cc)
+target_link_libraries(test_socket_client ${LIBS})

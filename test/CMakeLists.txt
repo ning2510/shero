@@ -18,3 +18,6 @@ target_link_libraries(test_socket_client ${LIBS})
 
 add_executable(test_buffer ./test_buffer.cc)
 target_link_libraries(test_buffer ${LIBS})
+
+add_executable(test_hook ./test_hook.cc)
+target_link_libraries(test_hook ${LIBS})

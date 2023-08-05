@@ -15,6 +15,7 @@ SET(SRC_FILES
     shero/base/Config.cc
     shero/base/Thread.cc
     shero/base/Buffer.cc
+    shero/coroutine/Hook.cc
     shero/net/Socket.cc
     shero/net/Poller.cc
     shero/net/Address.cc
@@ -30,6 +31,7 @@ find_library(TINYXML tinyxml REQUIRED)
 SET(LIBS
     shero
     pthread
+    dl
     ${YAMLCPP}
     ${TINYXML}
 )

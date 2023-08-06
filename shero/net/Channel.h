@@ -1,8 +1,11 @@
 #ifndef __SHERO_CHANNEL_H
 #define __SHERO_CHANNEL_H
 
+#include "shero/base/Mutex.h"
+#include "shero/base/Singleton.h"
 #include "shero/base/Noncopyable.h"
 
+#include <vector>
 #include <memory>
 #include <functional>
 #include <sys/epoll.h>
@@ -76,6 +79,22 @@ private:
     std::function<void()> m_errorCallback;
     std::function<void()> m_closeCallback;
 };
+
+class ChannelManager {
+public:
+    typedef std::shared_ptr<ChannelManager> ptr;
+    typedef RWMutex RWMutexType;
+    ChannelManager(int32_t size = 256);
+
+    Channel::ptr getChannel(int32_t fd);
+
+private:
+    RWMutexType m_mutex;
+    int32_t m_size;
+    std::vector<Channel::ptr> m_channels;
+};
+
+typedef Singleton<ChannelManager> ChannelMgr;
 
 }   // namespace shero
 

@@ -11,13 +11,15 @@
 
 namespace shero {
 
+static thread_local EventLoop::ptr t_eventLoop_ptr = nullptr;
 static thread_local EventLoop *t_eventLoop = nullptr;
 
 const int EventLoop::m_pollTimeMs = 100000;
 
 EventLoop *EventLoop::GetEventLoop() {
-    if(SHERO_UNLICKLY(!t_eventLoop)) {
-        return nullptr;
+    if(SHERO_UNLICKLY(!t_eventLoop_ptr)) {
+        t_eventLoop_ptr.reset(new EventLoop());
+        t_eventLoop = t_eventLoop_ptr.get();
     }
     return t_eventLoop;
 }
@@ -30,17 +32,13 @@ EventLoop::EventLoop()
       m_poller(Poller::newDefaultPoller(this)),
       m_callingpendingFunctors(false) {
 
-    if(t_eventLoop) {
-        LOG_FATAL << "Anthor EventLoop [" << this <<  "] exist in this thread, tid = " << m_tid;
-    }
-    t_eventLoop = this;
-
     m_wakeupChannel->setReadCallback(std::bind(&EventLoop::wakeup, this));
     m_wakeupChannel->addListenEvents(IOEvent::READ);
 }
 
 EventLoop::~EventLoop() {
     std::cout << "~EventLoop\n";
+    t_eventLoop_ptr.reset();
     t_eventLoop = nullptr;
 }
 

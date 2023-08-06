@@ -1,4 +1,5 @@
 #include "shero/base/Log.h"
+#include "shero/net/Channel.h"
 #include "shero/coroutine/Hook.h"
 #include "shero/coroutine/Coroutine.h"
 
@@ -77,7 +78,8 @@ int socket(int domain, int type, int protocol) {
         return socket_hook(domain, type, protocol);
     }
 
-    // TODO
+    // int32_t fd = socket_hook(AF_INET, SOCK_STREAM, 0);
+
     std::cout << "socket hook" << std::endl;
     return 0;
 }

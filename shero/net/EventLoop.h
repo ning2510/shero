@@ -14,12 +14,11 @@ namespace shero {
 
 class EventLoop {
 public:
+    typedef std::shared_ptr<EventLoop> ptr;
     typedef RWMutex RWMutexType;
     typedef std::function<void()> Functor;
 
     static EventLoop *GetEventLoop();
-
-    EventLoop();
     ~EventLoop();
 
     void updateChannel(Channel *channel);
@@ -35,6 +34,7 @@ public:
     void wakeup();
 
 private:
+    EventLoop();
     void handleRead();
     void doPendingFunctors();
 

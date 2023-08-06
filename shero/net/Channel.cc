@@ -6,6 +6,7 @@
 
 namespace shero {
 
+// Channel
 Channel::Channel(EventLoop *loop, int32_t fd)
     : m_fd(fd),
       m_event(IOEvent::NONE),
@@ -94,6 +95,31 @@ void Channel::handleEventWithGuard() {
             m_writeCallback();
         }
     }
+}
+
+// ChannelManager
+ChannelManager::ChannelManager(int32_t size /*= 256*/)
+    : m_size(size) {
+}
+
+Channel::ptr ChannelManager::getChannel(int32_t fd) {
+    RWMutex::ReadLock rlock(m_mutex);
+    int32_t size = (int32_t)m_channels.size();
+    if(fd < (int32_t)m_channels.size()) {
+        m_channels[fd] = 
+            std::make_shared<Channel>(EventLoop::GetEventLoop(), fd);
+        return m_channels[fd];
+    }
+    rlock.unlock();
+
+    RWMutex::WriteLock wlock(m_mutex);
+    int32_t newSize = (size * 1.5) <= fd ? fd : size * 1.5;
+    m_channels.resize(newSize);
+    for(int i = size; i < newSize; i++) {
+        m_channels.push_back(
+            std::make_shared<Channel>(EventLoop::GetEventLoop(), i));
+    }
+    return m_channels[fd];
 }
 
 }   // namespace shero

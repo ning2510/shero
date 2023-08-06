@@ -21,3 +21,6 @@ target_link_libraries(test_buffer ${LIBS})
 
 add_executable(test_hook ./test_hook.cc)
 target_link_libraries(test_hook ${LIBS})
+
+add_executable(test_coroutine ./test_coroutine.cc)
+target_link_libraries(test_coroutine ${LIBS})

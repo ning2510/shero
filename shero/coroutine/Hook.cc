@@ -1,4 +1,6 @@
+#include "shero/base/Log.h"
 #include "shero/coroutine/Hook.h"
+#include "shero/coroutine/Coroutine.h"
 
 #include <dlfcn.h>
 #include <iostream>
@@ -18,8 +20,9 @@ static bool g_hook_enable = true;
 void hook_init() {
     static bool is_inited = false;
     if(is_inited) {
-        return;
+        return ;
     }
+    is_inited = true;
 
 #define XX(name) name##_hook = (name##_hook_func)dlsym(RTLD_NEXT, #name);
     HOOK_FUNC(XX);

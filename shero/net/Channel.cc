@@ -2,6 +2,8 @@
 #include "shero/net/Channel.h"
 #include "shero/net/EventLoop.h"
 
+#include <fcntl.h>
+#include <string.h>
 #include <unistd.h>
 
 namespace shero {
@@ -12,6 +14,7 @@ Channel::Channel(EventLoop *loop, int32_t fd)
       m_event(IOEvent::NONE),
       m_revents(IOEvent::NONE),
       m_loop(loop),
+      m_cor(nullptr),
       m_status(ChannelStatus::NEW),
       m_tied(false) {
 }
@@ -66,6 +69,22 @@ void Channel::tie(std::shared_ptr<void> &v) {
     }
 }
 
+void Channel::setNonBlock() {
+    int32_t flag = fcntl(m_fd, F_GETFL, 0);
+    if(flag & O_NONBLOCK) {
+        return ;
+    }
+
+    fcntl(m_fd, F_SETFL, flag | O_NONBLOCK);
+    flag = fcntl(m_fd, F_GETFL, 0);
+    if(flag & O_NONBLOCK) {
+        LOG_INFO << "set nonblock success, fd = " << m_fd;
+    } else {
+        LOG_ERROR << "set nonblock failed, fd = " << m_fd
+            << " strerror = " << strerror(errno);
+    }
+}
+
 void Channel::removeFromLoop() {
     m_loop->removeChannel(this);
 }
@@ -75,22 +94,22 @@ void Channel::updateToLoop() {
 }
 
 void Channel::handleEventWithGuard() {
-    if(m_revents & EPOLLHUP) {
+    if(m_revents & IOEvent::HUP) {
         if(m_closeCallback) {
             m_closeCallback();
         }
     }
-    if(m_revents & EPOLLERR) {
+    if(m_revents & IOEvent::ERROR) {
         if(m_errorCallback) {
             m_errorCallback();
         }
     }
-    if(m_revents & EPOLLIN) {
+    if(m_revents & IOEvent::READ) {
         if(m_readCallback) {
             m_readCallback();
         }
     }
-    if(m_revents & EPOLLOUT) {
+    if(m_revents & IOEvent::WRITE) {
         if(m_writeCallback) {
             m_writeCallback();
         }
@@ -99,26 +118,23 @@ void Channel::handleEventWithGuard() {
 
 // ChannelManager
 ChannelManager::ChannelManager(int32_t size /*= 256*/)
-    : m_size(size) {
+    : m_size(size),
+      m_channels(size + 1) {
 }
 
 Channel::ptr ChannelManager::getChannel(int32_t fd) {
-    RWMutex::ReadLock rlock(m_mutex);
+    MutexType::Lock lock(m_mutex);
     int32_t size = (int32_t)m_channels.size();
-    if(fd < (int32_t)m_channels.size()) {
-        m_channels[fd] = 
-            std::make_shared<Channel>(EventLoop::GetEventLoop(), fd);
+    if(fd > (int32_t)m_channels.size()) {
+        int32_t newSize = (size * 1.5) <= fd ? fd : size * 1.5;
+        m_channels.resize(newSize + 1);
+    }
+
+    if(m_channels[fd]) {
         return m_channels[fd];
     }
-    rlock.unlock();
-
-    RWMutex::WriteLock wlock(m_mutex);
-    int32_t newSize = (size * 1.5) <= fd ? fd : size * 1.5;
-    m_channels.resize(newSize);
-    for(int i = size; i < newSize; i++) {
-        m_channels.push_back(
-            std::make_shared<Channel>(EventLoop::GetEventLoop(), i));
-    }
+    m_channels[fd] = std::make_shared<Channel>(EventLoop::GetEventLoop(), fd);
+    LOG_INFO << "Channel Manager new a channel, fd = " << fd; 
     return m_channels[fd];
 }
 

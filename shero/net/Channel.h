@@ -4,6 +4,7 @@
 #include "shero/base/Mutex.h"
 #include "shero/base/Singleton.h"
 #include "shero/base/Noncopyable.h"
+#include "shero/coroutine/Coroutine.h"
 
 #include <vector>
 #include <memory>
@@ -17,7 +18,9 @@ class EventLoop;
 enum IOEvent {
     NONE = 0,
     READ = EPOLLIN,
-    WRITE = EPOLLOUT
+    WRITE = EPOLLOUT,
+    ERROR = EPOLLERR,
+    HUP = EPOLLHUP
 };
 
 enum ChannelStatus {
@@ -38,6 +41,7 @@ public:
 
     void handleEvent();
     void tie(std::shared_ptr<void> &v);
+    void setNonBlock();
     void removeFromLoop();
 
     int32_t getFd() const { return m_fd; }
@@ -59,6 +63,10 @@ public:
     bool isWriting() { return m_event & IOEvent::WRITE; }
     bool isNoneEvent() { return m_event == IOEvent::NONE; }
 
+    void setCoroutine(Coroutine *cor) { m_cor = cor; }
+    Coroutine *getCoroutine() const { return m_cor; }
+    void clearCoroutine() { m_cor = nullptr; }
+
 private:
     void updateToLoop();
     void handleEventWithGuard();
@@ -68,6 +76,7 @@ private:
     int32_t m_event;
     int32_t m_revents;
     EventLoop *m_loop;
+    Coroutine *m_cor;
 
     ChannelStatus m_status;
 
@@ -83,13 +92,13 @@ private:
 class ChannelManager {
 public:
     typedef std::shared_ptr<ChannelManager> ptr;
-    typedef RWMutex RWMutexType;
+    typedef Mutex MutexType;
     ChannelManager(int32_t size = 256);
 
     Channel::ptr getChannel(int32_t fd);
 
 private:
-    RWMutexType m_mutex;
+    MutexType m_mutex;
     int32_t m_size;
     std::vector<Channel::ptr> m_channels;
 };

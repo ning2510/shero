@@ -110,7 +110,8 @@ int32_t Socket::accept(Address::ptr peerAddr, bool setNonBlock /*= false*/) {
         connfd = ::accept(m_fd, (sockaddr *)&addr, &len);
     }
     if(connfd < 0) {
-        LOG_ERROR << "::accept4() error, strerror = " << strerror(errno);
+        LOG_ERROR << "::accept() error, errno = "
+             << errno << " strerror = " << strerror(errno);
     } else {
         peerAddr->setAddr(addr);
     }

@@ -27,6 +27,7 @@ void EPollPoller::poll(int32_t timeoutMs, ChannelList *activeChannels) {
     
     if(numEvents > 0) {
         LOG_DEBUG << numEvents << " events happened";
+        
         fillActiveChannels(numEvents, activeChannels);
         if(numEvents == static_cast<int32_t>(sizeof(m_events))) {
             m_events.resize(m_events.size() * 2);
@@ -83,6 +84,9 @@ void EPollPoller::fillActiveChannels(int32_t numEvents, ChannelList *activeChann
         Channel *channel = static_cast<Channel *>(ev.data.ptr);
         channel->setRevents(ev.events);
         activeChannels->push_back(channel);
+
+        LOG_DEBUG << "fd = " << channel->getFd() << " events = " << ev.events
+            << " channel = " << channel;
     }
 }
 

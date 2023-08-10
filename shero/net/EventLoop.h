@@ -43,6 +43,9 @@ public:
 
     void wakeup();
 
+    pid_t getThreadId() const { return m_tid; }
+    int32_t getWakeupFd() const { return m_wakeupFd; }
+
 private:
     EventLoop();
     void handleRead();
@@ -57,7 +60,7 @@ private:
     RWMutexType m_mutex;
 
     int32_t m_wakeupFd;
-    std::unique_ptr<Channel> m_wakeupChannel;
+    Channel::ptr m_wakeupChannel;
     std::unique_ptr<Poller> m_poller;
 
     ChannelList m_activeChannels;

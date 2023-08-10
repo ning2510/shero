@@ -4,6 +4,7 @@
 #include "shero/net/Socket.h"
 #include "shero/net/Address.h"
 #include "shero/net/Channel.h"
+#include "shero/coroutine/Coroutine.h"
 
 #include <memory>
 #include <functional>
@@ -15,9 +16,9 @@ class EventLoop;
 class TcpAcceptor {
 public:
     typedef std::shared_ptr<TcpAcceptor> ptr;
-    typedef std::function<void(int32_t connfd, Address::ptr addr)> NewConnectionCallback;
+    typedef std::function<void(int32_t connfd, Address addr)> NewConnectionCallback;
 
-    TcpAcceptor(EventLoop *loop, Address::ptr localAddr);
+    TcpAcceptor(EventLoop *loop, const Address &localAddr);
     ~TcpAcceptor();
 
     void listen();
@@ -27,19 +28,24 @@ public:
     }
 
     int32_t getFd() const { return m_sock->getFd(); }
-    Address *getLocalAddr() const { return m_localAddr.get(); }
-    Address *getPeerAddr() const { return m_peerAddr.get(); }
+    Address getLocalAddr() const { return m_localAddr; }
+    Address getPeerAddr() const { return m_peerAddr; }
+
+    Coroutine *getAcceptCor() const { return m_acceptCor.get(); }
 
 private:
     void handleRead();
+    void MainLoopFunc();
 
 private:
+    bool m_stop;
     Socket::ptr m_sock;
 
-    Address::ptr m_localAddr;
-    Address::ptr m_peerAddr;
+    Address m_localAddr;
+    Address m_peerAddr;
+    Coroutine::ptr m_acceptCor;
 
-    Channel m_acceptChannel;
+    Channel::ptr m_acceptChannel;
     NewConnectionCallback m_newConnectionCallback;
 };
 

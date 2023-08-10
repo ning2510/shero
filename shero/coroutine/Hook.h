@@ -2,6 +2,7 @@
 #define __SHERO_HOOK_H
 
 #include <unistd.h>
+#include <sys/uio.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 
@@ -16,6 +17,9 @@ extern "C" {
 
 typedef ssize_t (* read_hook_func)(int fd, void *buf, size_t count);
 extern read_hook_func read_hook;
+
+typedef ssize_t (* readv_hook_func)(int fd, const struct iovec *iov, int iovcnt);
+extern readv_hook_func readv_hook;
 
 typedef ssize_t (* write_hook_func)(int fd, const void *buf, size_t count);
 extern write_hook_func write_hook;

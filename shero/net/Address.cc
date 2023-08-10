@@ -17,13 +17,13 @@ Address::Address(uint16_t port /*= 0*/, const char *address /*= "0.0.0.0"*/) {
     m_addr.sin_addr.s_addr = inet_addr(address);
 }
 
-std::string Address::toIP() {
+const std::string Address::toIP() const {
     char buf[64] = {0};
     inet_ntop(AF_INET, &m_addr.sin_addr, buf, sizeof(buf));
     return buf;
 }
 
-std::string Address::toIpPort() {
+const std::string Address::toIpPort() const {
     std::string ip = toIP();
     uint16_t port = getPort();
     char buf[128] = {0};

@@ -75,7 +75,7 @@ bool Socket::init() {
     return true;
 }
 
-bool Socket::bind(Address::ptr localAddr) {
+bool Socket::bind(Address *localAddr) {
     if(isInvalid()) {
         LOG_ERROR << "Socket::bind() invalid socket";
         return false;
@@ -86,6 +86,10 @@ bool Socket::bind(Address::ptr localAddr) {
         LOG_ERROR << "::bind() error, strerror = " << strerror(errno);
     }
     return rt >= 0;
+}
+
+bool Socket::bind(Address::ptr localAddr) {
+    return bind(localAddr.get());
 }
 
 bool Socket::listen(int32_t backlog /*= SOMAXCONN*/) {
@@ -101,7 +105,7 @@ bool Socket::listen(int32_t backlog /*= SOMAXCONN*/) {
     return rt >= 0;
 }
 
-int32_t Socket::accept(Address::ptr peerAddr, bool setNonBlock /*= false*/) {
+int32_t Socket::accept(Address *peerAddr, bool setNonBlock /*= false*/) {
     if(isInvalid()) {
         LOG_ERROR << "Socket::accept() invalid socket";
         return false;

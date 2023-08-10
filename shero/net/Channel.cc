@@ -123,7 +123,7 @@ ChannelManager::ChannelManager(int32_t size /*= 256*/)
       m_channels(size + 1) {
 }
 
-Channel::ptr ChannelManager::getChannel(int32_t fd) {
+Channel::ptr ChannelManager::getChannel(int32_t fd, EventLoop *loop /*= nullptr*/) {
     MutexType::Lock lock(m_mutex);
     int32_t size = (int32_t)m_channels.size();
     if(fd > (int32_t)m_channels.size()) {
@@ -131,10 +131,18 @@ Channel::ptr ChannelManager::getChannel(int32_t fd) {
         m_channels.resize(newSize + 1);
     }
 
+    loop = loop != nullptr ? loop : EventLoop::GetEventLoop();
     if(m_channels[fd]) {
+        if(m_channels[fd]->getEventLoop() != loop) {
+            LOG_WARN << "getChannel exist, fd = " << fd << ", loop = " 
+                << m_channels[fd]->getEventLoop() << ", now loop = " << loop
+                << ", don't worry! it may be trying to wake up the loop[" 
+                << m_channels[fd]->getEventLoop() << "]";
+        }
         return m_channels[fd];
     }
-    m_channels[fd] = std::make_shared<Channel>(EventLoop::GetEventLoop(), fd);
+
+    m_channels[fd] = std::make_shared<Channel>(loop, fd);
     LOG_INFO << "Channel Manager new a channel, fd = " << fd; 
     return m_channels[fd];
 }

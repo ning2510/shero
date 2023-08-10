@@ -6,8 +6,8 @@
 
 namespace shero {
 
-static thread_local CoroutinePool::ptr t_coroutinePool_ptr = nullptr;
-static thread_local CoroutinePool *t_coroutinePool = nullptr;
+static CoroutinePool::ptr t_coroutinePool_ptr = nullptr;
+static CoroutinePool *t_coroutinePool = nullptr;
 
 CoroutinePool *CoroutinePool::GetCoroutinePool(
         int32_t blockSize /*= 256 * 1024 B*/, int32_t poolSize /*= 100*/) {

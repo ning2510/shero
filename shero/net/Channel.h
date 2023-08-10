@@ -95,7 +95,7 @@ public:
     typedef Mutex MutexType;
     ChannelManager(int32_t size = 256);
 
-    Channel::ptr getChannel(int32_t fd);
+    Channel::ptr getChannel(int32_t fd, EventLoop *loop = nullptr);
 
 private:
     MutexType m_mutex;

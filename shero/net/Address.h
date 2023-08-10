@@ -25,8 +25,8 @@ public:
     uint16_t getPort() const { return byteswapOnLittleEndian(m_addr.sin_port); }
     void setPort(uint16_t v) { m_addr.sin_port = byteswapOnLittleEndian(v); }
 
-    std::string toIP();
-    std::string toIpPort();
+    const std::string toIP() const;
+    const std::string toIpPort() const;
 
 private:
     sockaddr_in m_addr;

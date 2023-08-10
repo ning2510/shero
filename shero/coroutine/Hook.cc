@@ -14,6 +14,7 @@ static bool g_hook_enable = true;
 
 #define HOOK_FUNC(XX) \
     XX(read) \
+    XX(readv) \
     XX(write) \
     XX(socket) \
     XX(accept) \
@@ -62,10 +63,11 @@ ssize_t read(int fd, void *buf, size_t count) {
             << shero::Coroutine::IsMainCoroutine();
         return read_hook(fd, buf, count);
     }
-    LOG_DEBUG << "read hook start";
+    LOG_DEBUG << "read hook start, fd = " << fd 
+        << ", current EventLoop = " << shero::EventLoop::GetEventLoop();
 
-    shero::Channel::ptr channel =
-         shero::ChannelMgr::GetInstance()->getChannel(fd);
+    shero::Channel *channel =
+         shero::ChannelMgr::GetInstance()->getChannel(fd).get();
     channel->setNonBlock();
 
     ssize_t rt = read_hook(fd, buf, count);
@@ -77,20 +79,72 @@ ssize_t read(int fd, void *buf, size_t count) {
     channel->setCoroutine(cor);
     channel->addListenEvents(shero::IOEvent::READ);
     channel->setReadCallback([cor]() {
-        LOG_DEBUG << "read resume";
+        LOG_DEBUG << "read resume, current EventLoop = " 
+            << shero::EventLoop::GetEventLoop();
         shero::Coroutine::Resume(cor);
     });
 
-    LOG_DEBUG << "read hook, coroutine[" 
-        << shero::Coroutine::GetCurCoroutine() << "] Yield";
+    LOG_DEBUG << "read hook, fd = " << fd << " coroutine[" 
+        << shero::Coroutine::GetCurCoroutine() 
+        << "] Yield, current EventLoop = " 
+        << shero::EventLoop::GetEventLoop();
+
     shero::Coroutine::Yield();
-    LOG_DEBUG << "read hook, coroutine[" 
-        << shero::Coroutine::GetCurCoroutine() << "] Resume";
+
+    LOG_DEBUG << "read hook, fd = " << fd << " coroutine[" 
+        << shero::Coroutine::GetCurCoroutine() 
+        << "] Yield, current EventLoop = " 
+        << shero::EventLoop::GetEventLoop();
 
     channel->delListenEvents(shero::IOEvent::READ);
     channel->clearCoroutine();
     
     return read_hook(fd, buf, count);
+}
+
+ssize_t readv(int fd, const struct iovec *iov, int iovcnt) {
+    if(!shero::g_hook_enable || shero::Coroutine::IsMainCoroutine()) {
+        LOG_DEBUG << "[readv] g_hook_enable is " << shero::g_hook_enable 
+            << ", current coroutine is main coroutine "
+            << shero::Coroutine::IsMainCoroutine();
+        return readv_hook(fd, iov, iovcnt);
+    }
+    LOG_DEBUG << "readv hook start, fd = " << fd 
+        << ", current EventLoop = " << shero::EventLoop::GetEventLoop();
+
+    shero::Channel *channel =
+         shero::ChannelMgr::GetInstance()->getChannel(fd).get();
+    channel->setNonBlock();
+    ssize_t rt = readv_hook(fd, iov, iovcnt);
+    if(rt > 0) {
+        return rt;
+    }
+
+    shero::Coroutine *cor = shero::Coroutine::GetCurCoroutine();
+    channel->setCoroutine(cor);
+    channel->addListenEvents(shero::IOEvent::READ);
+
+    channel->setReadCallback([cor]() {
+        LOG_DEBUG << "readv resume, current EventLoop = " 
+            << shero::EventLoop::GetEventLoop();
+        shero::Coroutine::Resume(cor);
+    });
+
+    LOG_DEBUG << "readv hook, fd = " << fd << " coroutine[" 
+        << shero::Coroutine::GetCurCoroutine() 
+        << "] Yield, current EventLoop = " 
+        << shero::EventLoop::GetEventLoop();
+
+    shero::Coroutine::Yield();
+
+    LOG_DEBUG << "readv hook, fd = " << fd << " coroutine[" 
+        << shero::Coroutine::GetCurCoroutine() 
+        << "] Resume, current EventLoop = " 
+        << shero::EventLoop::GetEventLoop();
+
+    channel->delListenEvents(shero::IOEvent::READ);
+    channel->clearCoroutine();
+    return readv_hook(fd, iov, iovcnt);
 }
 
 ssize_t write(int fd, const void *buf, size_t count) {
@@ -100,10 +154,11 @@ ssize_t write(int fd, const void *buf, size_t count) {
             << shero::Coroutine::IsMainCoroutine();
         return write_hook(fd, buf, count);
     }
-    LOG_DEBUG << "write hook start";
+    LOG_DEBUG << "write hook start, fd = " << fd 
+        << ", current EventLoop = " << shero::EventLoop::GetEventLoop();
 
-    shero::Channel::ptr channel =
-         shero::ChannelMgr::GetInstance()->getChannel(fd);
+    shero::Channel *channel =
+         shero::ChannelMgr::GetInstance()->getChannel(fd).get();
     channel->setNonBlock();
 
     ssize_t rt = write_hook(fd, buf, count);
@@ -115,15 +170,22 @@ ssize_t write(int fd, const void *buf, size_t count) {
     channel->setCoroutine(cor);
     channel->addListenEvents(shero::IOEvent::WRITE);
     channel->setWriteCallback([cor]() {
-        LOG_DEBUG << "write resume";
+        LOG_DEBUG << "write resume, current EventLoop = " 
+            << shero::EventLoop::GetEventLoop();
         shero::Coroutine::Resume(cor);
     });
 
-    LOG_DEBUG << "write hook, coroutine[" 
-        << shero::Coroutine::GetCurCoroutine() << "] Yield";
+    LOG_DEBUG << "write hook, fd = " << fd << " coroutine[" 
+        << shero::Coroutine::GetCurCoroutine() 
+        << "] Yield, current EventLoop = " 
+        << shero::EventLoop::GetEventLoop();
+
     shero::Coroutine::Yield();
-    LOG_DEBUG << "write hook, coroutine[" 
-        << shero::Coroutine::GetCurCoroutine() << "] Resume";
+
+    LOG_DEBUG << "write hook, fd = " << fd << " coroutine[" 
+        << shero::Coroutine::GetCurCoroutine() 
+        << "] Yield, current EventLoop = " 
+        << shero::EventLoop::GetEventLoop();
 
     channel->delListenEvents(shero::IOEvent::WRITE);
     channel->clearCoroutine();
@@ -152,10 +214,11 @@ int accept(int sockfd, struct sockaddr *addr, socklen_t *addrlen) {
             << shero::Coroutine::IsMainCoroutine();
         return accept_hook(sockfd, addr, addrlen);
     }
-    LOG_DEBUG << "accept hook start";
+    LOG_DEBUG << "accept hook start, fd = " << sockfd
+        << ", current EventLoop = " << shero::EventLoop::GetEventLoop();
 
-    shero::Channel::ptr channel =
-         shero::ChannelMgr::GetInstance()->getChannel(sockfd);
+    shero::Channel *channel =
+         shero::ChannelMgr::GetInstance()->getChannel(sockfd).get();
     channel->setNonBlock();
 
     int32_t connfd = accept_hook(sockfd, addr, addrlen);
@@ -167,15 +230,22 @@ int accept(int sockfd, struct sockaddr *addr, socklen_t *addrlen) {
     channel->setCoroutine(cor);
     channel->addListenEvents(shero::IOEvent::READ);
     channel->setReadCallback([cor]() {
-        LOG_DEBUG << "accept resume";
+        LOG_DEBUG << "accept resume, current EventLoop = " 
+            << shero::EventLoop::GetEventLoop();
         shero::Coroutine::Resume(cor);
     });
 
-    LOG_DEBUG << "accept hook, coroutine[" 
-        << shero::Coroutine::GetCurCoroutine() << "] Yield";
+    LOG_DEBUG << "accept hook, fd = " << sockfd << " coroutine[" 
+        << shero::Coroutine::GetCurCoroutine() 
+        << "] Resume, current EventLoop = " 
+        << shero::EventLoop::GetEventLoop();
+
     shero::Coroutine::Yield();
-    LOG_DEBUG << "accept hook, coroutine[" 
-        << shero::Coroutine::GetCurCoroutine() << "] Resume";
+
+    LOG_DEBUG << "accept hook, fd = " << sockfd << " coroutine[" 
+        << shero::Coroutine::GetCurCoroutine() 
+        << "] Resume, current EventLoop = " 
+        << shero::EventLoop::GetEventLoop();
 
     channel->delListenEvents(shero::IOEvent::READ);
     channel->clearCoroutine();
@@ -190,10 +260,11 @@ int connect(int sockfd, const struct sockaddr *addr, socklen_t addrlen) {
             << shero::Coroutine::IsMainCoroutine();
         return connect_hook(sockfd, addr, addrlen);
     }
-    LOG_DEBUG << "connect hook start";
+    LOG_DEBUG << "connect hook start, fd = " << sockfd
+        << ", current EventLoop = " << shero::EventLoop::GetEventLoop();
 
-    shero::Channel::ptr channel =
-         shero::ChannelMgr::GetInstance()->getChannel(sockfd);
+    shero::Channel *channel =
+         shero::ChannelMgr::GetInstance()->getChannel(sockfd).get();
     channel->setNonBlock();
 
     int32_t rt = connect_hook(sockfd, addr, addrlen);
@@ -207,7 +278,8 @@ int connect(int sockfd, const struct sockaddr *addr, socklen_t addrlen) {
     channel->setCoroutine(co);
     channel->addListenEvents(shero::IOEvent::WRITE);
     channel->setWriteCallback([co]() {
-        LOG_DEBUG << "connect resume";
+        LOG_DEBUG << "connect resume, current EventLoop = " 
+            << shero::EventLoop::GetEventLoop();
         shero::Coroutine::Resume(co);
     });
 
@@ -221,11 +293,17 @@ int connect(int sockfd, const struct sockaddr *addr, socklen_t addrlen) {
         shero::Coroutine::Resume(cor);
     }, false);
 
-    LOG_DEBUG << "connect hook, coroutine[" 
-        << shero::Coroutine::GetCurCoroutine() << "] Yield";
+    LOG_DEBUG << "connect hook, fd = " << sockfd << " coroutine[" 
+        << shero::Coroutine::GetCurCoroutine() 
+        << "] Yield, current EventLoop = " 
+        << shero::EventLoop::GetEventLoop();
+
     shero::Coroutine::Yield();
-    LOG_DEBUG << "connect hook, coroutine[" 
-        << shero::Coroutine::GetCurCoroutine() << "] Resume";
+
+    LOG_DEBUG << "connect hook, fd = " << sockfd << " coroutine[" 
+        << shero::Coroutine::GetCurCoroutine() 
+        << "] Resume, current EventLoop = " 
+        << shero::EventLoop::GetEventLoop();
 
     channel->delListenEvents(shero::IOEvent::WRITE);
     channel->clearCoroutine();

@@ -11,7 +11,7 @@ void defaultRemoveConnection(EventLoop *loop, const TcpConnectionPtr &conn) {
 }
 
 void defaultConnectCallback(const TcpConnectionPtr &conn) {
-    LOG_INFO << "connect to " << conn->getPeerAddr()->toIpPort() << " is " << (conn->isConnected() ? "UP" : "DOWN");
+    LOG_INFO << "connect to " << conn->getPeerAddr().toIpPort() << " is " << (conn->isConnected() ? "UP" : "DOWN");
 }
 
 void defaultMessageCallback(const TcpConnectionPtr &conn, Buffer *buf) {
@@ -93,7 +93,8 @@ void TcpClient::newConnection(int32_t sockfd) {
     m_nextConnId++;
     std::string connName = m_nameArg + buf;
 
-    TcpConnectionPtr conn(new TcpConnection(sockfd, m_loop, connName, peerAddr));
+    Address addr = *peerAddr;
+    TcpConnectionPtr conn(new TcpConnection(this, sockfd, m_loop, connName, addr));
     conn->setConnectionCallback(m_connectionCallback);
     conn->setMessageCallback(m_messageCallback);
     conn->setWriteCompleteCallback(m_writeCompleteCallback);
@@ -105,7 +106,7 @@ void TcpClient::newConnection(int32_t sockfd) {
         m_conn = conn;
     }
 
-    conn->connectEstablished();
+    conn->ClientconnectEstablished();
 }
 
 void TcpClient::removeConnection(const TcpConnectionPtr &conn) {

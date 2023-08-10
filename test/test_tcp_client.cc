@@ -8,6 +8,7 @@
 #include "shero/net/tcp/TcpClient.h"
 #include "shero/net/EventLoopThread.h"
 
+#include <signal.h>
 #include <iostream>
 
 using namespace std;
@@ -46,14 +47,14 @@ public:
 private:
     void onConnection(const TcpConnectionPtr &conn) {
         if(conn->isConnected()) {
-            LOG_INFO << "Connectuion UP : " << conn->getPeerAddr()->toIpPort();
+            LOG_INFO << "Connectuion UP : " << conn->getPeerAddr().toIpPort();
             {
                 Mutex::Lock lock(m_mutex);
                 m_conn = conn;
                 m_connect = true;
             }
         } else {
-            LOG_INFO << "Connection DOWN : " << conn->getPeerAddr()->toIpPort();
+            LOG_INFO << "Connection DOWN : " << conn->getPeerAddr().toIpPort();
             {
                 Mutex::Lock lock(m_mutex);
                 m_conn.reset();
@@ -89,8 +90,8 @@ int main() {
     string msg;
     while(1) {
         cin >> msg;
-        if(!client.isConnected()) {
-            cout << "exit" << endl;
+        if(msg == "exit" || !client.isConnected()) {
+            cout << "client exit" << endl;
             break;
         }
         client.send(msg);

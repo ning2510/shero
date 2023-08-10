@@ -1,16 +1,44 @@
 #include "shero/base/Log.h"
 #include "shero/net/Socket.h"
+#include "shero/net/Channel.h"
 #include "shero/net/EventLoop.h"
+#include "shero/net/tcp/TcpClient.h"
 #include "shero/net/tcp/TcpConnection.h"
+#include "shero/coroutine/CoroutinePool.h"
 
 #include <string.h>
 #include <unistd.h>
 
 namespace shero {
 
-TcpConnection::TcpConnection(int32_t connfd, EventLoop *subLoop, 
-            const std::string &name, Address::ptr peerAddr)
-    : m_connfd(connfd),
+// TcpServer will create it by this method
+TcpConnection::TcpConnection(TcpServer *server, int32_t connfd, EventLoop *subLoop, 
+            const std::string &name, Address peerAddr)
+    : m_stop(false),
+      m_connfd(connfd),
+      m_name(name),
+      m_state(Connecting),
+      m_input(),
+      m_output(),
+      m_peerAddr(peerAddr),
+      m_subLoop(subLoop) {
+    
+    m_channel = ChannelMgr::GetInstance()->getChannel(m_connfd, subLoop);
+    m_channel->setCloseCallback(std::bind(&TcpConnection::handleClose, this));
+    m_channel->setErrorCallback(std::bind(&TcpConnection::handleError, this));
+    
+    m_coroutine = CoroutinePool::GetCoroutinePool()->getCoroutineInstance();
+    m_coroutine->setCallback(std::bind(&TcpConnection::MainLoopFunc, this));
+
+    LOG_INFO << "[Server] TcpConnection constructor [" << m_name 
+        << "], connfd = " << m_connfd;
+}
+
+// TcpClient will create it by this method
+TcpConnection::TcpConnection(TcpClient *client, int32_t connfd, EventLoop *subLoop, 
+            const std::string &name, Address peerAddr)
+    : m_stop(false),
+      m_connfd(connfd),
       m_name(name),
       m_state(Connecting),
       m_channel(new Channel(subLoop, connfd)),
@@ -23,17 +51,48 @@ TcpConnection::TcpConnection(int32_t connfd, EventLoop *subLoop,
     m_channel->setWriteCallback(std::bind(&TcpConnection::handleWrite, this));
     m_channel->setCloseCallback(std::bind(&TcpConnection::handleClose, this));
     m_channel->setErrorCallback(std::bind(&TcpConnection::handleError, this));
-    
-    LOG_INFO << "TcpConnection constructor [" << m_name 
+
+    LOG_INFO << "[Client] TcpConnection constructor [" << m_name 
         << "], connfd = " << m_connfd;
 }
 
 TcpConnection::~TcpConnection() {
+    m_stop = true;
     close(m_connfd);
     LOG_INFO << "TcpConnection destructor [" << m_name 
         << "], connfd = " << m_connfd;
 }
 
+void TcpConnection::MainLoopFunc() {
+    while(!m_stop) {
+        handleRead();
+    }
+}
+
+// TcpServer method
+void TcpConnection::ServerConnectEstablished() {
+    setState(Connected);
+    m_channel->tie(shared_from_this());
+    m_connectionCallback(shared_from_this());
+    Coroutine::Resume(m_coroutine.get());
+}
+
+// TcpClient method
+void TcpConnection::ClientconnectEstablished() {
+    setState(Connected);
+    m_channel->tie(shared_from_this());
+    m_channel->addListenEvents(IOEvent::READ);
+    m_connectionCallback(shared_from_this());
+}
+
+void TcpConnection::connectDestroyed() {
+    if(m_state == Connected) {
+        setState(Disconnected);
+        m_channel->delAllListenEvents();
+        m_connectionCallback(shared_from_this());
+    }
+    m_channel->removeFromLoop();
+}
 
 // send
 void TcpConnection::send(const std::string &data) {
@@ -94,6 +153,7 @@ void TcpConnection::sendInLoop(const void *data, size_t len) {
     if(!err && remaining > 0) {
         m_output.writeLen((char *)data + nwrote, remaining);
         if(!m_channel->isWriting()) {
+            m_channel->setWriteCallback(std::bind(&TcpConnection::handleWrite, this));
             m_channel->addListenEvents(IOEvent::WRITE);
         }
     }
@@ -134,23 +194,6 @@ void TcpConnection::forceCloseInLoop() {
     }
 }
 
-void TcpConnection::connectEstablished() {
-    setState(Connected);
-    m_channel->tie(shared_from_this());
-    m_channel->addListenEvents(IOEvent::READ);
-    m_connectionCallback(shared_from_this());
-}
-
-void TcpConnection::connectDestroyed() {
-    if(m_state == Connected) {
-        setState(Disconnected);
-        m_channel->delAllListenEvents();
-        m_connectionCallback(shared_from_this());
-    }
-    m_channel->removeFromLoop();
-}
-
-
 // handle event
 void TcpConnection::handleRead() {
     int32_t saveError;
@@ -183,6 +226,9 @@ void TcpConnection::handleWrite() {
                 if(m_state == Disconnecting) {
                     shutdownInLoop();
                 }
+            } else {
+                // 没写完要继续设置写回调，因为可能会被 write hook 中设置的写会调覆盖
+                m_channel->setWriteCallback(std::bind(&TcpConnection::handleWrite, this));
             }
         } else {
             LOG_ERROR << "TcpConnection::handleWrite error"

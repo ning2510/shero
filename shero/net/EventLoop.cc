@@ -38,10 +38,10 @@ EventLoop::EventLoop()
     : m_tid(GetThreadId()),
       m_looping(false),
       m_wakeupFd(createEventFd()),
-      m_wakeupChannel(new Channel(this, m_wakeupFd)),
       m_poller(Poller::newDefaultPoller(this)),
       m_callingpendingFunctors(false) {
 
+    m_wakeupChannel = ChannelMgr::GetInstance()->getChannel(m_wakeupFd, this);
     m_wakeupChannel->setReadCallback(std::bind(&EventLoop::handleRead, this));
     m_wakeupChannel->addListenEvents(IOEvent::READ);
 }
@@ -67,7 +67,7 @@ bool EventLoop::hasChannel(Channel *channel) {
 void EventLoop::loop() {
     m_looping = true;
     
-    LOG_DEBUG << "EventLoop " << this << " start loop";
+    LOG_DEBUG << "EventLoop [" << this << "] start loop";
 
     while(m_looping) {
         m_activeChannels.clear();

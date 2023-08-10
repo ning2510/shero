@@ -26,9 +26,10 @@ public:
     bool init();
     void close();
     bool isInvalid();
+    bool bind(Address *localAddr);
     bool bind(Address::ptr localAddr);
     bool listen(int32_t backlog = SOMAXCONN);
-    int32_t accept(Address::ptr peerAddr, bool setNonBlock = false);
+    int32_t accept(Address *peerAddr, bool setNonBlock = false);
     bool connect(Address::ptr peerAddr);
 
     Address::ptr getLocalAddr();

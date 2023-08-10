@@ -25,7 +25,7 @@ public:
     typedef std::function<void(EventLoop *)> ThreadInitCallback;
 
     TcpServer(EventLoop *mainLoop, 
-        Address::ptr addr, const std::string &nameArg = "");
+        const Address &addr, const std::string &nameArg = "");
     ~TcpServer();
 
     void start();
@@ -38,7 +38,7 @@ public:
     void setWriteCompleteCallback(const WriteCompleteCallback &cb) { m_writeCompleteCallback = cb; }
 
 private:
-    void newConnection(int32_t connfd, Address::ptr peerAddr);
+    void newConnection(int32_t connfd, Address peerAddr);
     void removeConnection(const TcpConnectionPtr &conn);
     void removeConnectionInLoop(const TcpConnectionPtr &conn);
 
@@ -48,8 +48,8 @@ private:
     std::string m_nameArg;
 
     EventLoop *m_mainLoop;
-    
-    Coroutine::ptr m_coroutine;
+    CoroutinePool *m_coroutinePool;
+
     std::unique_ptr<TcpAcceptor> m_acceptor;
     EventLoopThreadPool::ptr m_eventThreadPool;
     

@@ -16,7 +16,7 @@ void Quit(int sig) {
 
 class EchoServer {
 public:
-    EchoServer(EventLoop *loop, Address::ptr addr, const std::string &name)
+    EchoServer(EventLoop *loop, const Address &addr, const std::string &name)
         : m_loop(loop),
           m_server(loop, addr, name) {
         
@@ -34,9 +34,9 @@ public:
 private:
     void onConnection(const TcpConnectionPtr &conn) {
         if(conn->isConnected()) {
-            LOG_INFO << "Connection UP : " << conn->getPeerAddr()->toIpPort();
+            LOG_INFO << "Connection UP : " << conn->getPeerAddr().toIpPort();
         } else {
-            LOG_INFO << "Connection DOWN : " << conn->getPeerAddr()->toIpPort();
+            LOG_INFO << "Connection DOWN : " << conn->getPeerAddr().toIpPort();
         }
     }
 
@@ -52,18 +52,17 @@ private:
 };
 
 int main() {
-    set_hook_enable(false);
+    // set_hook_enable(false);
     signal(SIGINT, Quit);
 
     EventLoop *loop = EventLoop::GetEventLoop();
     std::cout << "Server tid = " << GetThreadId() 
         << ", main loop = " << loop << std::endl;
     
-    Address::ptr addr(new Address(6666));
+    Address addr(6666);
     
     EchoServer server(loop, addr, "EchoServer");
     server.start();
-    loop->loop();
 
     std::cout << "main end\n";
 

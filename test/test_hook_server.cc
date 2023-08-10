@@ -24,8 +24,8 @@ void corCallback() {
     rt = socket->listen();
     assert(rt);
 
-    shero::Address::ptr peerAddr(new shero::Address);
-    int32_t connfd = socket->accept(peerAddr);
+    shero::Address peerAddr;
+    int32_t connfd = socket->accept(&peerAddr);
     assert(connfd >= 0);
     LOG_DEBUG << "accept fd = " << connfd;
 

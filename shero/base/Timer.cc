@@ -73,6 +73,7 @@ Timer::Timer(EventLoop *loop /*= nullptr*/) {
 }
 
 Timer::~Timer() {
+    LOG_INFO << "~Timer";
     m_channel->removeFromLoop();
     if(m_channel) {
         delete m_channel;

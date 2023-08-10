@@ -56,13 +56,13 @@ extern "C" {
 #undef XX
 
 ssize_t read(int fd, void *buf, size_t count) {
-    LOG_DEBUG << "read hook start";
     if(!shero::g_hook_enable || shero::Coroutine::IsMainCoroutine()) {
-        LOG_DEBUG << "g_hook_enable is " << shero::g_hook_enable 
+        LOG_DEBUG << "[read] g_hook_enable is " << shero::g_hook_enable 
             << ", current coroutine is main coroutine "
             << shero::Coroutine::IsMainCoroutine();
         return read_hook(fd, buf, count);
     }
+    LOG_DEBUG << "read hook start";
 
     shero::Channel::ptr channel =
          shero::ChannelMgr::GetInstance()->getChannel(fd);
@@ -94,10 +94,13 @@ ssize_t read(int fd, void *buf, size_t count) {
 }
 
 ssize_t write(int fd, const void *buf, size_t count) {
-    LOG_DEBUG << "write hook start";
     if(!shero::g_hook_enable || shero::Coroutine::IsMainCoroutine()) {
+        LOG_DEBUG << "[write] g_hook_enable is " << shero::g_hook_enable 
+            << ", current coroutine is main coroutine "
+            << shero::Coroutine::IsMainCoroutine();
         return write_hook(fd, buf, count);
     }
+    LOG_DEBUG << "write hook start";
 
     shero::Channel::ptr channel =
          shero::ChannelMgr::GetInstance()->getChannel(fd);
@@ -129,10 +132,13 @@ ssize_t write(int fd, const void *buf, size_t count) {
 }
 
 int socket(int domain, int type, int protocol) {
-    LOG_DEBUG << "socket hook start";
     if(!shero::g_hook_enable || shero::Coroutine::IsMainCoroutine()) {
+        LOG_DEBUG << "[socket] g_hook_enable is " << shero::g_hook_enable 
+            << ", current coroutine is main coroutine "
+            << shero::Coroutine::IsMainCoroutine();
         return socket_hook(domain, type, protocol);
     }
+    LOG_DEBUG << "socket hook start";
 
     int32_t fd = socket_hook(AF_INET, SOCK_STREAM, 0);
     shero::ChannelMgr::GetInstance()->getChannel(fd);
@@ -140,10 +146,13 @@ int socket(int domain, int type, int protocol) {
 }
 
 int accept(int sockfd, struct sockaddr *addr, socklen_t *addrlen) {
-    LOG_DEBUG << "accept hook start";
     if(!shero::g_hook_enable || shero::Coroutine::IsMainCoroutine()) {
+        LOG_DEBUG << "[accept] g_hook_enable is " << shero::g_hook_enable 
+            << ", current coroutine is main coroutine "
+            << shero::Coroutine::IsMainCoroutine();
         return accept_hook(sockfd, addr, addrlen);
     }
+    LOG_DEBUG << "accept hook start";
 
     shero::Channel::ptr channel =
          shero::ChannelMgr::GetInstance()->getChannel(sockfd);
@@ -175,10 +184,13 @@ int accept(int sockfd, struct sockaddr *addr, socklen_t *addrlen) {
 }
 
 int connect(int sockfd, const struct sockaddr *addr, socklen_t addrlen) {
-    LOG_DEBUG << "connect hook start";
     if(!shero::g_hook_enable || shero::Coroutine::IsMainCoroutine()) {
+        LOG_DEBUG << "[connect] g_hook_enable is " << shero::g_hook_enable 
+            << ", current coroutine is main coroutine "
+            << shero::Coroutine::IsMainCoroutine();
         return connect_hook(sockfd, addr, addrlen);
     }
+    LOG_DEBUG << "connect hook start";
 
     shero::Channel::ptr channel =
          shero::ChannelMgr::GetInstance()->getChannel(sockfd);
@@ -231,10 +243,10 @@ int connect(int sockfd, const struct sockaddr *addr, socklen_t addrlen) {
 }
 
 unsigned int sleep(unsigned int seconds) {
-    LOG_DEBUG << "sleep hook start";
     if(!shero::g_hook_enable || shero::Coroutine::IsMainCoroutine()) {
         return sleep_hook(seconds);
     }
+    LOG_DEBUG << "sleep hook start";
 
     shero::EventLoop *loop = shero::EventLoop::GetEventLoop();
     shero::Timer::ptr timer = std::make_shared<shero::Timer>(loop);

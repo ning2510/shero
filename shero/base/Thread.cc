@@ -1,3 +1,4 @@
+#include "shero/base/Log.h"
 #include "shero/base/Util.h"
 #include "shero/base/Thread.h"
 
@@ -5,16 +6,16 @@
 
 namespace shero {
 
-Thread::Thread(Callback cb) 
+Thread::Thread(Callback cb, const std::string &name /*= ""*/)
     : m_start(false),
+      m_name(name),
       m_cb(std::move(cb)) {
     sem_init(&m_sem, 0, 0);
-    start();
 }
 
 Thread::~Thread() {
+    LOG_INFO << "~Thread " << m_tid;
     join();
-    // std::cout << "~Thread " << m_tid << std::endl;
 }
 
 void Thread::start() {
@@ -35,11 +36,12 @@ void Thread::join() {
 
 void *Thread::run(void *arg) {
     Thread *thread = (Thread *)arg;
+    thread->m_start = true;
+    thread->m_tid = GetThreadId();
+
     int rt = sem_post(&thread->m_sem);
     assert(rt == 0);
 
-    thread->m_start = true;
-    thread->m_tid = GetThreadId();
     thread->m_cb();
 
     return nullptr;

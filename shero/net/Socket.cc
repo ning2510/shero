@@ -24,12 +24,17 @@ Socket::ptr Socket::CreateUDP(Address::ptr addr) {
 }
 
 Socket::Socket(int32_t domain /*= AF_INET*/, 
-        int32_t type /*= SOCK_STREAM*/, int32_t protocol /*= 0*/)
+        int32_t type /*= SOCK_STREAM*/, int32_t protocol /*= 0*/, bool nowCreate /*= false*/)
     : m_fd(-1),
       m_domain(domain),
       m_type(type),
       m_protocol(protocol),
-      m_connected(false) {
+      m_connected(false),
+      m_created(false) {
+    bool rt = init();
+    if(rt) {
+        m_created = true;
+    }
 }
 
 Socket::~Socket() {
@@ -53,8 +58,12 @@ bool Socket::isInvalid() {
 }
 
 bool Socket::init() {
+    if(m_created) {
+        return true;
+    }
     // socket   bind    setsocket
     m_fd = socket(m_domain, m_type, m_protocol);
+    LOG_DEBUG << "Socket::init() socket fd = " << m_fd;
     if(m_fd < 0) {
         LOG_ERROR << "::socket() error, strerror = " << strerror(errno);
         return false;
@@ -143,7 +152,7 @@ Address::ptr Socket::getLocalAddr() {
     socklen_t len = sizeof(addr);
     int32_t rt = getsockname(m_fd, (sockaddr *)&addr, &len);
     if(rt < 0) {
-        LOG_ERROR << "getpeername() error, strerror = " << strerror(errno);
+        LOG_ERROR << "getsockname() error, strerror = " << strerror(errno);
     }
 
     m_localAddr = std::make_shared<Address>(addr);

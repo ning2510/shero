@@ -21,3 +21,9 @@ target_link_libraries(test_buffer ${LIBS})
 
 add_executable(test_coroutine ./test_coroutine.cc)
 target_link_libraries(test_coroutine ${LIBS})
+
+add_executable(test_tcp_client ./test_tcp_client.cc)
+target_link_libraries(test_tcp_client ${LIBS})
+
+add_executable(test_tcp_server ./test_tcp_server.cc)
+target_link_libraries(test_tcp_server ${LIBS})

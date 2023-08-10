@@ -19,7 +19,8 @@ public:
     static Socket::ptr CreateUDP();
     static Socket::ptr CreateUDP(Address::ptr addr);
 
-    Socket(int32_t domain = AF_INET, int32_t type = SOCK_STREAM, int32_t protocol = 0);
+    Socket(int32_t domain = AF_INET, int32_t type = SOCK_STREAM, 
+        int32_t protocol = 0, bool nowCreate = false);
     ~Socket();
 
     bool init();
@@ -51,6 +52,7 @@ private:
     int32_t m_type;
     int32_t m_protocol;
     bool m_connected;
+    bool m_created;
 
     Address::ptr m_localAddr;
     Address::ptr m_remoteAddr;

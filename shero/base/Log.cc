@@ -174,11 +174,8 @@ void AsyncLogger::join() {
 }
 
 void AsyncLogger::push(std::vector<std::string> &buffer) {
-    std::vector<std::string> tmp;
-    tmp.swap(buffer);
-
     MutexType::Lock lock(m_mutex);
-    m_queue.push(tmp);
+    m_queue.push(buffer);
     lock.unlock();
 
     pthread_cond_signal(&m_cond);
@@ -202,8 +199,10 @@ void *AsyncLogger::mainLoop(void *arg) {
         }
         
         std::vector<std::string> msg;
-        msg.swap(logger->m_queue.front());
-        logger->m_queue.pop();
+        if(!logger->m_queue.empty()) {
+            msg = logger->m_queue.front();
+            logger->m_queue.pop();
+        }
         lock.unlock();
     
         if(logger->m_mode != LogMode::Mode::FILE) {
@@ -271,15 +270,17 @@ Logger::Logger(LogMode::Mode mode, const char *filePath,
 
 Logger::~Logger() {
     m_asyncLogger->stop();
-    std::cout << "~Logger\n";
+    // std::cout << "~Logger\n";
 }
 
-void Logger::log(const std::string &msg) {
+void Logger::log(std::string msg) {
     MutexType::Lock lock(m_mutex);
     m_buffer.push_back(msg);
+    std::vector<std::string> tmp;
+    tmp.swap(m_buffer);
     lock.unlock();
 
-    m_asyncLogger->push(m_buffer);
+    m_asyncLogger->push(tmp);
 }
 
 bool LoggerManager::m_isDefault = true;

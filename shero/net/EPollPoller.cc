@@ -74,7 +74,8 @@ void EPollPoller::update(int32_t opt, Channel *channel) {
 
     int rt = epoll_ctl(m_epfd, opt, channel->getFd(), &ev);
     if(rt < 0) {
-        LOG_ERROR << "epoll_ctl error, strerror = " << strerror(errno);
+        LOG_ERROR << "epoll_ctl error, strerror = " << strerror(errno)
+            << " fd = " << channel->getFd();
     }
 }
 

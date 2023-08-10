@@ -26,6 +26,18 @@ SET(SRC_FILES
     shero/net/Channel.cc
     shero/net/EventLoop.cc
     shero/net/EPollPoller.cc
+    shero/net/EventLoopThread.cc
+    shero/net/EventLoopThreadPool.cc
+    shero/net/http/Http.cc
+    shero/net/http/HttpStatus.cc
+    shero/net/http/HttpParser.cc
+    shero/net/http/http11_parser.rl.cc
+    shero/net/http/httpclient_parser.rl.cc
+    shero/net/tcp/TcpClient.cc
+    shero/net/tcp/TcpServer.cc
+    shero/net/tcp/TcpAcceptor.cc
+    shero/net/tcp/TcpConnector.cc
+    shero/net/tcp/TcpConnection.cc
 )
 SET(COXTX shero/coroutine/coctx_swap.S)
 add_library(shero SHARED ${SRC_FILES} ${COXTX})

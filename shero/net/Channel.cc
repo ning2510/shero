@@ -17,6 +17,7 @@ Channel::Channel(EventLoop *loop, int32_t fd)
       m_cor(nullptr),
       m_status(ChannelStatus::NEW),
       m_tied(false) {
+    LOG_INFO << "new Channel created, loop = " << loop << ", fd = " << fd;
 }
 
 Channel::~Channel() {
@@ -62,7 +63,7 @@ void Channel::handleEvent() {
     }
 }
 
-void Channel::tie(std::shared_ptr<void> &v) {
+void Channel::tie(const std::shared_ptr<void> &v) {
     if(v) {
         m_tie = v;
         m_tied = true;

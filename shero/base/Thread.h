@@ -16,7 +16,7 @@ public:
     typedef std::shared_ptr<Thread> ptr;
     typedef std::function<void()> Callback;
 
-    Thread(Callback cb);
+    Thread(Callback cb, const std::string &name = "");
     ~Thread();
     void start();
     void join();
@@ -32,6 +32,7 @@ private:
     pthread_t m_thread;
     sem_t m_sem;
     bool m_start;
+    std::string m_name;
 
     Callback m_cb;
 };

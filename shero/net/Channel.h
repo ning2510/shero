@@ -40,7 +40,7 @@ public:
     void delAllListenEvents();
 
     void handleEvent();
-    void tie(std::shared_ptr<void> &v);
+    void tie(const std::shared_ptr<void> &v);
     void setNonBlock();
     void removeFromLoop();
 

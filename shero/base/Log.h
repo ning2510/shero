@@ -110,7 +110,12 @@ private:
 class LogEventWrap {
 public:
     LogEventWrap(LogEvent::ptr event) : m_event(event) {}
-    ~LogEventWrap() { m_event->log(); }
+    ~LogEventWrap() {
+        m_event->log();
+        if(m_event->getLevel() == LogLevel::Level::FATAL) {
+            exit(0);
+        }
+    }
 
     std::stringstream &getSS() { return m_event->getSS(); }
 
@@ -173,7 +178,7 @@ public:
         int32_t maxSize, int64_t interval, LogLevel::Level level);
     ~Logger();
 
-    void log(const std::string &msg);
+    void log(std::string msg);
 
     LogLevel::Level getLevel() const { return m_level; }
     void setLevel(LogLevel::Level v) { m_level = v; }

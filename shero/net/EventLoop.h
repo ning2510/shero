@@ -1,6 +1,7 @@
 #ifndef __SHERO_EVENTLOOP_H
 #define __SHERO_EVENTLOOP_H
 
+#include "shero/base/Log.h"
 #include "shero/base/Util.h"
 #include "shero/base/Mutex.h"
 #include "shero/net/Channel.h"
@@ -30,6 +31,15 @@ public:
     void runInLoop(Functor cb);
     void queueInLoop(Functor cb);
     bool isInLoopThread() { return m_tid == GetThreadId(); }
+    void abortNotInLoopThread() {
+        LOG_FATAL << "EventLoop::abortNotInLoopThread - EventLoop[" << this 
+            << "], its thread id = " << m_tid << ", current thread id = " << GetThreadId();
+    }
+    void assertInLoopThread() {
+        if(!isInLoopThread()) {
+            abortNotInLoopThread();
+        }
+    }
 
     void wakeup();
 

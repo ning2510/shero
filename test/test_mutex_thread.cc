@@ -34,8 +34,9 @@ void test_mutex() {
     // pthread_join(p2, nullptr);
 
     shero::Thread::ptr p1 = std::make_shared<shero::Thread>(func1);
+    p1->start();
     shero::Thread::ptr p2 = std::make_shared<shero::Thread>(func2);
-    
+    p2->start();
 }
 
 int main(int argc, char **argv) {

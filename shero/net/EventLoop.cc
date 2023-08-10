@@ -24,20 +24,30 @@ EventLoop *EventLoop::GetEventLoop() {
     return t_eventLoop;
 }
 
+int32_t createEventFd() {
+    int evtfd = ::eventfd(0, EFD_NONBLOCK | EFD_CLOEXEC);
+    if(evtfd < 0) {
+        LOG_FATAL << "eventfd error : " << errno;
+    } else {
+        LOG_INFO << "eventFd() success, event fd = " << evtfd;
+    }
+    return evtfd;
+}
+
 EventLoop::EventLoop()
     : m_tid(GetThreadId()),
       m_looping(false),
-      m_wakeupFd(eventfd(0, EFD_CLOEXEC)),
+      m_wakeupFd(createEventFd()),
       m_wakeupChannel(new Channel(this, m_wakeupFd)),
       m_poller(Poller::newDefaultPoller(this)),
       m_callingpendingFunctors(false) {
 
-    m_wakeupChannel->setReadCallback(std::bind(&EventLoop::wakeup, this));
+    m_wakeupChannel->setReadCallback(std::bind(&EventLoop::handleRead, this));
     m_wakeupChannel->addListenEvents(IOEvent::READ);
 }
 
 EventLoop::~EventLoop() {
-    std::cout << "~EventLoop\n";
+    // stc::cout << "~EventLoop "<< this;
     t_eventLoop_ptr.reset();
     t_eventLoop = nullptr;
 }
@@ -116,17 +126,19 @@ void EventLoop::doPendingFunctors() {
 }
 
 void EventLoop::wakeup() {
-    uint8_t one = 1;
+    uint64_t one = 1;
     if(write(m_wakeupFd, &one, sizeof(one)) != sizeof(one)) {
         LOG_ERROR << "EventLoop::wakeup() error, strerror = " << strerror(errno);
     }
+    LOG_INFO << "EventLoop::wakeup() write";
 }
 
 void EventLoop::handleRead() {
-    uint8_t one;
+    uint64_t one;
     if(read(m_wakeupFd, &one, sizeof(one)) != sizeof(one)) {
         LOG_ERROR << "EventLoop::handleRead() error, strerror = " << strerror(errno);
     }
+    LOG_INFO << "EventLoop::wakeup() read";
 }
 
 }   // namespace shero

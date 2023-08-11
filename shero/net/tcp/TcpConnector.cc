@@ -128,6 +128,10 @@ void TcpConnector::connecting(int32_t sockfd) {
     m_channel->setWriteCallback(std::bind(&TcpConnector::handleWrite, this));
     m_channel->setErrorCallback(std::bind(&TcpConnector::handleError, this));
 
+    /**
+     * 当连接可用后，且缓存区不满，调用 epoll_ctl 将 fd 重新注册到 epoll 事件池
+     * (使用 EPOLL_CTL_MOD)，这时会触发 EPOLLOUT 事件
+     */
     m_channel->addListenEvents(IOEvent::WRITE);
 }
 

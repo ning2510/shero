@@ -9,7 +9,6 @@ namespace shero {
 TcpAcceptor::TcpAcceptor(EventLoop *loop, const Address &localAddr)
     : m_stop(false),
       m_sock(new Socket(AF_INET, SOCK_STREAM, 0)),
-    //   m_sock(new Socket(AF_INET, SOCK_STREAM | SOCK_NONBLOCK | SOCK_CLOEXEC, 0)),
       m_localAddr(localAddr) {
 
     bool rt = m_sock->init();

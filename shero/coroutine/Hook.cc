@@ -237,7 +237,7 @@ int accept(int sockfd, struct sockaddr *addr, socklen_t *addrlen) {
 
     LOG_DEBUG << "accept hook, fd = " << sockfd << " coroutine[" 
         << shero::Coroutine::GetCurCoroutine() 
-        << "] Resume, current EventLoop = " 
+        << "] Yield, current EventLoop = " 
         << shero::EventLoop::GetEventLoop();
 
     shero::Coroutine::Yield();

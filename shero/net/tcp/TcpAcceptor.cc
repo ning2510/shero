@@ -8,11 +8,10 @@ namespace shero {
 
 TcpAcceptor::TcpAcceptor(EventLoop *loop, const Address &localAddr)
     : m_stop(false),
-      m_sock(new Socket(AF_INET, SOCK_STREAM | SOCK_NONBLOCK | SOCK_CLOEXEC, 0, true)),
-      m_localAddr(localAddr)
-    //   ,
-    //   m_peerAddr(new Address())
-       {
+      m_sock(new Socket(AF_INET, SOCK_STREAM, 0)),
+    //   m_sock(new Socket(AF_INET, SOCK_STREAM | SOCK_NONBLOCK | SOCK_CLOEXEC, 0)),
+      m_localAddr(localAddr) {
+
     bool rt = m_sock->init();
     if(!rt) {
         return ;
@@ -24,7 +23,6 @@ TcpAcceptor::TcpAcceptor(EventLoop *loop, const Address &localAddr)
     }
     
     m_acceptChannel = ChannelMgr::GetInstance()->getChannel(m_sock->getFd(), loop);
-    // m_acceptChannel.setReadCallback(std::bind(&TcpAcceptor::handleRead, this));
     m_acceptCor = CoroutinePool::GetCoroutinePool()->getCoroutineInstance();
     m_acceptCor->setCallback(std::bind(&TcpAcceptor::MainLoopFunc, this));
 }
@@ -57,19 +55,6 @@ void TcpAcceptor::listen() {
     bool rt = m_sock->listen();
     if(!rt) {
         LOG_FATAL << "TcpAcceptor listen error";
-    }
-
-    // m_acceptChannel.addListenEvents(IOEvent::READ);
-}
-
-void TcpAcceptor::handleRead() {
-    int32_t connfd = m_sock->accept(&m_peerAddr);
-    if(connfd > 0) {
-        if(m_newConnectionCallback) {
-            m_newConnectionCallback(connfd, m_peerAddr);
-        } else {
-            close(connfd);
-        }
     }
 }
 

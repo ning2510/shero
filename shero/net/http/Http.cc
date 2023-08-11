@@ -99,7 +99,8 @@ std::ostream &HttpRequest::dump(std::ostream &os) const {
     }
 
     if(!m_body.empty()) {
-        os << "content-length: " << m_body.size() << "\r\n\r\n";
+        os << "content-length: " << m_body.size()
+           << "\r\n\r\n" << m_body;
     } else {
         os << "\r\n";
     }
@@ -171,7 +172,8 @@ std::ostream &HttpResponse::dump(std::ostream &os) const {
     os << "connection: " << (m_close ? "close" : "keep-alive") << "\r\n";
 
     if(!m_body.empty()) {
-        os << "content-length: " << m_body.size() << "\r\n\r\n";
+        os << "content-length: " << m_body.size() 
+           << "\r\n\r\n" << m_body;
     } else {
         os << "\r\n";
     }

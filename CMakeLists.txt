@@ -32,6 +32,9 @@ SET(SRC_FILES
     shero/net/http/Http.cc
     shero/net/http/HttpStatus.cc
     shero/net/http/HttpParser.cc
+    shero/net/http/HttpServer.cc
+    shero/net/http/HttpServlet.cc
+    shero/net/http/HttpDispatch.cc
     shero/net/tcp/TcpClient.cc
     shero/net/tcp/TcpServer.cc
     shero/net/tcp/TcpAcceptor.cc

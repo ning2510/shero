@@ -34,7 +34,8 @@ CoroutinePool::~CoroutinePool() {
     for(auto &it : m_memoryPool) {
         it.reset();
     }
-    std::cout << "~CoroutinePool" << std::endl;
+
+    // std::cout << "~CoroutinePool" << std::endl;
 }
 
 void CoroutinePool::addCortineInstance() {

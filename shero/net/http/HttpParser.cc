@@ -6,7 +6,7 @@
 namespace shero {
 namespace http {
 
-uint64_t String2Uint64(std::string str) {
+static uint64_t String2Uint64(std::string str) {
     uint64_t num = 0;
     for(auto &i : str) {
         if(i >= '0' && i <= '9') {
@@ -75,8 +75,9 @@ void on_request_http_version(void *data, const char *at, size_t length) {
 void on_request_header_done(void *data, const char *at, size_t length) {
 }
 
-HttpRequestParser::HttpRequestParser() \
+HttpRequestParser::HttpRequestParser()
     : m_error(ErrorCode::NONE) {
+    m_data.reset(new HttpRequest);
     http_parser_init(&m_parser);
     m_parser.http_field = on_request_http_field;
     m_parser.request_method = on_request_method;
@@ -104,7 +105,7 @@ int32_t HttpRequestParser::hasError() {
 }
 
 uint64_t HttpRequestParser::getContentLength() {
-    return String2Uint64(m_data->getHeader("Content-Length", 0));
+    return String2Uint64(m_data->getHeader("Content-Length"));
 }
 
 
@@ -152,6 +153,7 @@ void on_response_last_chunk(void *data, const char *at, size_t length) {
 }
 
 HttpResponseParser::HttpResponseParser() {
+    m_data.reset(new HttpResponse);
     httpclient_parser_init(&m_parser);
     m_parser.http_field = on_response_http_field;
 	m_parser.reason_phrase = on_response_reason_phrase;
@@ -181,7 +183,7 @@ int32_t HttpResponseParser::hasError() {
 }
 
 uint64_t HttpResponseParser::getContentLength() {
-    return String2Uint64(m_data->getHeader("Content-Length", 0));
+    return String2Uint64(m_data->getHeader("Content-Length"));
 }
 
 }   // namespace http

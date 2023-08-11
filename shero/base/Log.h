@@ -205,7 +205,7 @@ public:
         g_logger.reset(new Logger(mode, filePath, maxSize, interval, level));
     }
 
-    Logger::ptr getLogger() const { return g_logger; }
+    Logger *getLogger() const { return g_logger.get(); }
     static void setDefaultLogger(bool v) { m_isDefault = v; }
 
 private:

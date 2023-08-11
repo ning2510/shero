@@ -34,7 +34,6 @@ public:
     Coroutine *getAcceptCor() const { return m_acceptCor.get(); }
 
 private:
-    void handleRead();
     void MainLoopFunc();
 
 private:

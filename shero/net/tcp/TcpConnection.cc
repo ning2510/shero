@@ -261,7 +261,7 @@ void TcpConnection::handleError() {
         error = optval;
     }
     LOG_ERROR << "TcpConnection::handleError name = " << m_name
-        << " - SO_ERROR = " << error;
+        << " - SO_ERROR = " << error << ", strerror = " << strerror(error);
 }
 
 }   // namespace shero

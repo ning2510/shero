@@ -60,11 +60,47 @@ HttpResponse::ptr HttpClient::DoRequest(HttpMethod method,
                 const std::string &body /*= ""*/) {
     
     // 1. construct HttpRequest
+    HttpRequest::ptr req = HttpConstructRequest(method, uri, headers, body);
+
+    // 2. construct HttpClient instance
+    Address::ptr addr = uri->createAddress();
+    HttpClient::ptr client(new HttpClient(loop, *addr, name, retry));
+
+    // 3. set callback
+    // client->setSendCallback(std::bind(&HttpClient::onSendRequest, client.get(), req));
+    std::weak_ptr<HttpClient> client_weak = client;
+    client->setSendCallback([client_weak, req]() {
+        auto client = client_weak.lock();
+        if(client) {
+            client->onSendRequest(req);
+        }
+    });
+
+    client->connect();
+
+    sem_wait(client->getSem());
+    HttpResponse::ptr res = client->getResponse();
+    return res;
+}
+
+HttpRequest::ptr HttpClient::HttpConstructRequest(HttpMethod method, 
+                const std::string &url,
+                const std::map<std::string, std::string> &headers /*= {}*/, 
+                const std::string &body /*= ""*/) {
+    Uri::ptr uri = Uri::Create(url);
+    return HttpConstructRequest(method, uri, headers, body);
+}
+
+HttpRequest::ptr HttpClient::HttpConstructRequest(HttpMethod method, Uri::ptr uri,
+                const std::map<std::string, std::string> &headers /*= {}*/, 
+                const std::string &body /*= ""*/) {
+
     HttpRequest::ptr req(new HttpRequest);
     req->setMethod(method);
     req->setPath(uri->getPath());
     req->setQuery(uri->getQuery());
     req->setFragment(uri->getFragment());
+    req->setBody(body);
 
     bool host = false;
     for(auto &i : headers) {
@@ -86,29 +122,128 @@ HttpResponse::ptr HttpClient::DoRequest(HttpMethod method,
     }
 
     LOG_INFO << "port = " << uri->getPort() << ", host = " << uri->getHost();
+    return req;
+}
 
-    // 2. construct HttpClient instance
-    Address::ptr addr = uri->createAddress();
-    HttpClient::ptr client(new HttpClient(loop, *addr, name, retry));
+HttpResponse::ptr HttpClient::HttpParserResponse(std::vector<std::string> &resHttp) {
+    // Before parser
+    // for(size_t i = 0; i < resHttp.size(); i++) {
+    //     LOG_INFO << "i = " << i << "\n" << resHttp[i];
+    // }
 
-    // 3. set callback
-    // client->setSendCallback(std::bind(&HttpClient::onSendRequest, client.get(), req));
-    std::weak_ptr<HttpClient> client_weak = client;
-    client->setSendCallback([client_weak, req]() {
-        auto client = client_weak.lock();
-        if(client) {
-            client->onSendRequest(req);
+    std::string msg = resHttp[0];
+    size_t len = msg.size();
+
+    // 1. parser http response
+    HttpResponseParser::ptr resParser(new HttpResponseParser);
+    resParser->execute(msg, len, false);
+
+    if(resParser->hasError()) {
+        LOG_ERROR << "[HttpClient] Parsing http response message error";
+        return nullptr;
+    }
+
+    if(!resParser->isFinished()) {
+        LOG_ERROR << "[HttpClient] Parsing not complete, something erorr";
+        return nullptr;
+    }
+
+    HttpResponse::ptr res = resParser->getData();
+    auto *clientParser = resParser->getParser();
+
+    if(clientParser->chunked) {
+        // 2. parser http body
+        std::string body;
+        len = msg.size();
+        size_t index = 1;
+        do {
+            do {
+                if(index >= resHttp.size() && msg.empty()) {
+                    LOG_ERROR << "[HttpClient] Parsing error, the message received is incomplete";
+                    return nullptr;
+                }
+
+                if(index < resHttp.size()) {
+                    msg += resHttp[index++];
+                }
+
+                // If there is \r\n in the beginning part, it should be removed
+                if(msg.size() >= 2 && msg[0] == '\r' && msg[1] == '\n') {
+                    msg = msg.substr(2);
+                }
+
+                len = msg.size();
+                msg[len] = '\0';
+                size_t np = resParser->execute(msg, len, true); 
+                if(resParser->hasError()) {
+                    LOG_ERROR << "[HttpClient] Parsing http response message error";
+                    return nullptr;
+                }
+
+                len -= np;
+            } while(!resParser->isFinished());
+
+            // std::cout << "[HttpClient] Response http message content_len = " 
+            //     << clientParser->content_len << " len = " << len << '\n';
+
+            if(clientParser->content_len <= (int32_t)len) {
+                body += msg.substr(0, clientParser->content_len);
+                msg = msg.substr(clientParser->content_len);
+                len -= clientParser->content_len;
+            } else {
+                body += msg;
+                size_t remain = clientParser->content_len - len;
+                while(remain > 0) {
+                    if(index >= resHttp.size()) {
+                        LOG_ERROR << "[HttpClient] Parsing error, the message received is incomplete, index = " << index;
+                        return nullptr;
+                    }
+                    msg = resHttp[index++];
+                    len = msg.size();
+                    if(remain >= len) {
+                        body += msg;
+                        remain -= len;
+                        len = 0;
+                        msg.clear();
+                    } else {
+                        body += msg.substr(0, remain);
+                        msg = msg.substr(remain, len - remain);
+                        len = msg.size();
+                        remain = 0;
+                    }
+
+                }
+            }
+        } while(!clientParser->chunks_done);
+
+        res->setBody(body);
+    } else {
+        for(size_t i = 1; i < resHttp.size(); i++) {
+            msg += resHttp[i];
         }
-    });
+        len = msg.size();
 
-    client->connect();
+        // 2. parser http body
+        uint64_t contentLen = resParser->getContentLength();
+        LOG_INFO << "content length = " << contentLen
+            << " actual length = " << len;
+        if(len < contentLen) {
+            LOG_ERROR << "[HttpClient] response message body length error";
+            return nullptr;
+        }
+    
+        std::string body;
+        body.resize(contentLen);
+        memcpy(&body[0], &msg[0], contentLen);
+        res->setBody(body);
+    }
 
-    sem_wait(client->getSem());
-    HttpResponse::ptr res = client->getResponse();
-    std::cout << "use count = " << client.use_count() << std::endl;
+    LOG_INFO << "After parser:\n" << res->getBody();
     return res;
 }
 
+
+// HttpClient construct function
 HttpClient::HttpClient(EventLoop *loop, const Address &serverAddr, 
         const std::string &name, bool retry /*= false*/)
         : m_connect(false),
@@ -191,122 +326,9 @@ void HttpClient::onMessage(const TcpConnectionPtr &conn, Buffer *buf) {
         return ;
     }
 
-    // Before parser
-    // for(size_t i = 0; i < m_resHttp.size(); i++) {
-    //     LOG_INFO << "i = " << i << "\n" << m_resHttp[i];
-    // }
-
-    std::string msg = m_resHttp[0];
-    size_t len = msg.size();
-
-    // 1. parser http response
-    HttpResponseParser::ptr resParser(new HttpResponseParser);
-    resParser->execute(msg, len, false);
-
-    // size_t nparser = resParser->execute(msg, len, false);
-    // std::cout << "len = " << len << " len2 = " << msg.size() << " nparser = " << nparser << '\n';
-    if(resParser->hasError()) {
-        LOG_ERROR << "[HttpClient] Parsing http response message error";
-        return ;
-    }
-
-    if(!resParser->isFinished()) {
-        LOG_ERROR << "[HttpClient] Parsing not complete, something erorr";
-        return ;
-    }
-
-    HttpResponse::ptr res = resParser->getData();
-    auto *clientParser = resParser->getParser();
-    if(clientParser->chunked) {
-        // 2. parser http body
-        std::string body;
-        len = msg.size();
-        size_t index = 1;
-        do {
-            do {
-                if(index >= m_resHttp.size() && msg.empty()) {
-                    LOG_ERROR << "[HttpClient] Parsing error, the message received is incomplete";
-                    return ;
-                }
-
-                if(index < m_resHttp.size()) {
-                    msg += m_resHttp[index++];
-                }
-
-                // If there is \r\n in the beginning part, it should be removed
-                if(msg.size() >= 2 && msg[0] == '\r' && msg[1] == '\n') {
-                    msg = msg.substr(2);
-                }
-
-                len = msg.size();
-                msg[len] = '\0';
-                size_t np = resParser->execute(msg, len, true); 
-                if(resParser->hasError()) {
-                    LOG_ERROR << "[HttpClient] Parsing http response message error";
-                    return ;
-                }
-
-                len -= np;
-            } while(!resParser->isFinished());
-
-            // std::cout << "[HttpClient] Response http message content_len = " 
-            //     << clientParser->content_len << " len = " << len << '\n';
-
-            if(clientParser->content_len <= (int32_t)len) {
-                body += msg.substr(0, clientParser->content_len);
-                msg = msg.substr(clientParser->content_len);
-                len -= clientParser->content_len;
-            } else {
-                body += msg;
-                size_t remain = clientParser->content_len - len;
-                while(remain > 0) {
-                    if(index >= m_resHttp.size()) {
-                        LOG_ERROR << "[HttpClient] Parsing error, the message received is incomplete, index = " << index;
-                        return ;
-                    }
-                    msg = m_resHttp[index++];
-                    len = msg.size();
-                    if(remain >= len) {
-                        body += msg;
-                        remain -= len;
-                        len = 0;
-                        msg.clear();
-                    } else {
-                        body += msg.substr(0, remain);
-                        msg = msg.substr(remain, len - remain);
-                        len = msg.size();
-                        remain = 0;
-                    }
-
-                }
-            }
-        } while(!clientParser->chunks_done);
-
-        res->setBody(body);
-    } else {
-        for(size_t i = 1; i < m_resHttp.size(); i++) {
-            msg += m_resHttp[i];
-        }
-        len = msg.size();
-
-        // 2. parser http body
-        uint64_t contentLen = resParser->getContentLength();
-        LOG_INFO << "content length = " << contentLen
-            << " actual length = " << len;
-        if(len < contentLen) {
-            LOG_ERROR << "[HttpClient] response message body length error";
-            return ;
-        }
-    
-        std::string body;
-        body.resize(contentLen);
-        memcpy(&body[0], &msg[0], contentLen);
-        res->setBody(body);
-    }
-
-    LOG_INFO << "After parser:\n" << res->getBody();
-    m_res = res;
+    m_res = HttpParserResponse(m_resHttp);
     sem_post(&m_sem);
+
     disconnect();
 }
 

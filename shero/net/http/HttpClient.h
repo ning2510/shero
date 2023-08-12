@@ -67,6 +67,17 @@ public:
                 const std::map<std::string, std::string> &headers = {},
                 const std::string &body = "");
 
+
+    static HttpRequest::ptr HttpConstructRequest(HttpMethod method, Uri::ptr uri,
+                const std::map<std::string, std::string> &headers = {}, 
+                const std::string &body = "");
+    static HttpRequest::ptr HttpConstructRequest(HttpMethod method, const std::string &url,
+                const std::map<std::string, std::string> &headers = {}, 
+                const std::string &body = "");
+    
+
+    static HttpResponse::ptr HttpParserResponse(std::vector<std::string> &resHttp);
+
 private:
     void connect();
     void disconnect();

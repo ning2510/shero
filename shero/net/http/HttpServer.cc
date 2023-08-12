@@ -45,42 +45,12 @@ void HttpServer::onConnection(const TcpConnectionPtr &conn) {
 }
 
 void HttpServer::onMessage(const TcpConnectionPtr &conn, Buffer *buf) {
-    std::string msg = buf->retrieveAllAsString();
-    size_t len = msg.size();
-
     // 1. parser http request
-    HttpRequestParser::ptr reqParser(new HttpRequestParser);
-    size_t nparser = reqParser->execute((char *)msg.c_str(), len);
-    if(reqParser->hasError()) {
-        LOG_ERROR << "[HttpServer] Parsing http request message error";
+    HttpRequest::ptr req = HttpParserRequest(buf);
+    if(!req) {
         return ;
     }
-
-    if(!reqParser->isFinished()) {
-        LOG_ERROR << "[HttpServer] Parsing not complete, something erorr";
-        return ;
-    }
-
-    uint64_t contentLen = reqParser->getContentLength();
-    if((nparser > len) || (len - nparser != contentLen)) {
-        LOG_ERROR << "[HttpServer] request message body length error";
-        return ;
-    }
-
-    HttpRequest::ptr req = reqParser->getData();
-    if(contentLen > 0) {
-        std::string body;
-        body.resize(contentLen);
-        memcpy(&body[0], &msg[0], len - nparser);   
-        req->setBody(body);
-    }
-    std::string keep_alive = reqParser->getData()->getHeader("Connection");
-    bool close = true;
-    if(!strcasecmp(keep_alive.c_str(), "keep-alive")) {
-        req->setClose(false);
-        close = false;
-    }
-    
+ 
     HttpResponse::ptr res(
         new HttpResponse(req->getVersion(), req->isClose() || !m_keepAlive));
     
@@ -92,11 +62,51 @@ void HttpServer::onMessage(const TcpConnectionPtr &conn, Buffer *buf) {
     ss << *res;
     conn->send(ss.str());
 
-    if(close) {
+    if(req->isClose()) {
         conn->shutdown();
     }
 }
 
+HttpRequest::ptr HttpServer::HttpParserRequest(std::string msg) {
+    size_t len = msg.size();
+    HttpRequestParser::ptr reqParser(new HttpRequestParser);
+    size_t nparser = reqParser->execute((char *)msg.c_str(), len);
+    if(reqParser->hasError()) {
+        LOG_ERROR << "[HttpServer] Parsing http request message error";
+        return nullptr;
+    }
+
+    if(!reqParser->isFinished()) {
+        LOG_ERROR << "[HttpServer] Parsing not complete, something erorr";
+        return nullptr;
+    }
+
+    uint64_t contentLen = reqParser->getContentLength();
+    if((nparser > len) || (len - nparser != contentLen)) {
+        LOG_ERROR << "[HttpServer] request message body length error";
+        return nullptr;
+    }
+
+    HttpRequest::ptr req = reqParser->getData();
+    if(contentLen > 0) {
+        std::string body;
+        body.resize(contentLen);
+        memcpy(&body[0], &msg[0], len - nparser);   
+        req->setBody(body);
+    }
+
+    std::string keep_alive = req->getHeader("Connection");
+    if(!strcasecmp(keep_alive.c_str(), "keep-alive")) {
+        req->setClose(false);
+    }
+
+    return req;
+}
+
+HttpRequest::ptr HttpServer::HttpParserRequest(Buffer *buf) {
+    std::string msg = buf->retrieveAllAsString();
+    return HttpParserRequest(msg);
+}
 
 }   // namespace http
 }   // namespace shero

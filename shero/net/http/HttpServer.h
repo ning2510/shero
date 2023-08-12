@@ -19,6 +19,9 @@ public:
             const std::string &name, bool keepAlive = false);
     ~HttpServer();
 
+    static HttpRequest::ptr HttpParserRequest(Buffer *buf);
+    static HttpRequest::ptr HttpParserRequest(std::string msg);
+
     void start();
     void stop();
     void setThreadNums(int32_t nums);

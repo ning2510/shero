@@ -107,6 +107,8 @@ public:
     const char *readIndex() const { return begin() + m_readIndex; }
     char *writeIndex() { return begin() + m_writeIndex; }
     const char *writeIndex() const { return begin() + m_writeIndex; }
+    char *prependIndex() { return begin() + m_freePrepend; }
+    const char *prependIndex() const { return begin() + m_freePrepend; }
 
 private:
     char *begin() {
@@ -119,7 +121,14 @@ private:
 
     // 扩容
     void resizeBuffer(size_t len) {
-        
+        if(writeableBytes() + prependableBytes() < len + m_freePrepend) {
+            m_buffer.resize(m_writeIndex + len);
+        } else {
+            size_t readable = readableBytes();
+            std::copy(readIndex(), writeIndex(), prependIndex());
+            m_readIndex = m_freePrepend;
+            m_writeIndex = m_readIndex + readable;
+        }
     }
 
 private:

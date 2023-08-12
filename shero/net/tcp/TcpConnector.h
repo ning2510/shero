@@ -19,14 +19,14 @@ public:
     typedef std::shared_ptr<TcpConnector> ptr;
     typedef std::function<void(int32_t sockfd)> NewConnectionCallback;
 
-    TcpConnector(EventLoop *loop, Address::ptr serverAddr, bool canRetry = false);
+    TcpConnector(EventLoop *loop, const Address &serverAddr, bool canRetry = false);
     ~TcpConnector();
 
     void start();
     void restart();
 
     bool isConnected() const { return m_state == Connected; }
-    Address::ptr getServerAddr() const { return m_serverAddr; }
+    Address getServerAddr() const { return m_serverAddr; }
 
     void setNewConnectionCallback(const NewConnectionCallback &cb) { m_newConnectionCallback = cb; }
 
@@ -59,7 +59,7 @@ private:
     bool m_canRetry;
     bool m_connect;
     EventLoop *m_loop;
-    Address::ptr m_serverAddr;
+    Address m_serverAddr;
     Timer::ptr m_timer;
     ConnectorStatus m_state;
     Channel::ptr m_channel;

@@ -30,3 +30,6 @@ target_link_libraries(test_tcp_server ${LIBS})
 
 add_executable(test_http_server ./test_http_server.cc)
 target_link_libraries(test_http_server ${LIBS})
+
+add_executable(test_http_client ./test_http_client.cc)
+target_link_libraries(test_http_client ${LIBS})

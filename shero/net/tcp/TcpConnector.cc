@@ -23,7 +23,7 @@ static int32_t createNonBlocking() {
     return sockfd;
 }
 
-TcpConnector::TcpConnector(EventLoop *loop, Address::ptr serverAddr, bool canRetry /*= false*/)
+TcpConnector::TcpConnector(EventLoop *loop, const Address &serverAddr, bool canRetry /*= false*/)
     : m_retryDelayMs(InitRetryDelayMs),
       m_canRetry(canRetry),
       m_connect(false),
@@ -70,7 +70,7 @@ void TcpConnector::retry(int32_t sockfd) {
 
     if(m_connect) {
         LOG_INFO << "TcpConnector::retry connecting to "
-            << m_serverAddr->toIpPort() << " in " << m_retryDelayMs << " milliseconds";
+            << m_serverAddr.toIpPort() << " in " << m_retryDelayMs << " milliseconds";
 
         auto it = shared_from_this();
         m_timer->addTimer(m_retryDelayMs, 
@@ -97,7 +97,7 @@ int32_t TcpConnector::removeAndResetChannel() {
 void TcpConnector::connect() {
     int32_t sockfd = createNonBlocking();
     socklen_t len = sizeof(sockaddr_in);
-    int32_t ret = ::connect(sockfd, m_serverAddr->getAddr(), len);
+    int32_t ret = ::connect(sockfd, m_serverAddr.getAddr(), len);
     int32_t savedErrno = (ret == 0) ? 0 : errno;
     switch(savedErrno) {
         case 0:

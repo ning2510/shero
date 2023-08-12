@@ -13,22 +13,23 @@ size_t Buffer::readFd(int32_t fd, int32_t *saveErrno) {
     char buf[65536] = {0};
     struct iovec vec[2];
 
-    const size_t writbale = writeableBytes();
+    const size_t writable = writeableBytes();
     vec[0].iov_base = writeIndex();
-    vec[0].iov_len = writbale;
+    vec[0].iov_len = writable;
 
     vec[1].iov_base = buf;
     vec[1].iov_len = sizeof(buf);
 
-    const int iovcnt = writbale < sizeof(buf) ? 2 : 1;
+    const int iovcnt = writable < sizeof(buf) ? 2 : 1;
     const ssize_t rt = ::readv(fd, vec, iovcnt);
+    std::cout << "rt = " << rt << '\n';
     if(rt < 0) {
         *saveErrno = errno;
-    } else if(rt < (ssize_t)writbale) {
+    } else if(rt <= (ssize_t)writable) {
         m_writeIndex += rt;
     } else {
         m_writeIndex = m_buffer.size();
-        writeLen(buf, rt - writbale);
+        writeLen(buf, rt - writable);
     }
     return rt;
 }

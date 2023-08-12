@@ -32,6 +32,7 @@ SET(SRC_FILES
     shero/net/http/Http.cc
     shero/net/http/HttpStatus.cc
     shero/net/http/HttpParser.cc
+    shero/net/http/HttpClient.cc
     shero/net/http/HttpServer.cc
     shero/net/http/HttpServlet.cc
     shero/net/http/HttpDispatch.cc
@@ -42,6 +43,7 @@ SET(SRC_FILES
     shero/net/tcp/TcpConnection.cc
 )
 
+ragelmaker(shero/net/Uri.rl SRC_FILES ${CMAKE_CURRENT_SOURCE_DIR}/shero/net)
 ragelmaker(shero/net/http/http11_parser.rl SRC_FILES ${CMAKE_CURRENT_SOURCE_DIR}/shero/net/http)
 ragelmaker(shero/net/http/httpclient_parser.rl SRC_FILES ${CMAKE_CURRENT_SOURCE_DIR}/shero/net/http)
 

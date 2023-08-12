@@ -152,7 +152,8 @@ void on_response_header_done(void *data, const char *at, size_t length) {
 void on_response_last_chunk(void *data, const char *at, size_t length) {
 }
 
-HttpResponseParser::HttpResponseParser() {
+HttpResponseParser::HttpResponseParser()
+    : m_error(ErrorCode::NONE) {
     m_data.reset(new HttpResponse);
     httpclient_parser_init(&m_parser);
     m_parser.http_field = on_response_http_field;
@@ -175,6 +176,15 @@ size_t HttpResponseParser::execute(char *data, size_t len, bool chunck) {
     }
     size_t offset = httpclient_parser_execute(&m_parser, data, len, 0);
     memmove(data, data + offset, len - offset);
+    return offset;
+}
+
+size_t HttpResponseParser::execute(std::string &data, size_t len, bool chunck) {
+    if(chunck) {
+        httpclient_parser_init(&m_parser);
+    }
+    size_t offset = httpclient_parser_execute(&m_parser, (char *)data.c_str(), len, 0);
+    data = data.substr(offset);
     return offset;
 }
 

@@ -38,9 +38,9 @@ void HttpServer::setThreadNums(int32_t nums) {
 
 void HttpServer::onConnection(const TcpConnectionPtr &conn) {
     if(conn->isConnected()) {
-        LOG_INFO << "Http Connection UP : " << conn->getPeerAddr().toIpPort();
+        LOG_INFO << "[HttpServer] Connection UP : " << conn->getPeerAddr().toIpPort();
     } else {
-        LOG_INFO << "Http Connection DOWN : " << conn->getPeerAddr().toIpPort();    
+        LOG_INFO << "[HttpServer] Connection DOWN : " << conn->getPeerAddr().toIpPort();    
     }
 }
 

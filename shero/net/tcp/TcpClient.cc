@@ -19,7 +19,7 @@ void defaultMessageCallback(const TcpConnectionPtr &conn, Buffer *buf) {
     LOG_INFO << "recv message = " << msg;
 }
 
-TcpClient::TcpClient(EventLoop *loop, Address::ptr serverAddr, 
+TcpClient::TcpClient(EventLoop *loop, const Address &serverAddr, 
     bool retry /*= false*/, const std::string &nameArg /*= ""*/)
     : m_connect(false),
       m_retry(retry),
@@ -59,19 +59,21 @@ TcpClient::~TcpClient() {
 
 void TcpClient::connect() {
     LOG_INFO << "TcpClient::connect [" << m_nameArg << "] - connecting to " 
-        << m_connector->getServerAddr()->toIpPort();
+        << m_connector->getServerAddr().toIpPort();
 
     m_connect = true;
     m_connector->start();
 }
 
 void TcpClient::disconnect() {
-    m_connect = false;
-    {
-        MutexType::Lock lock(m_mutex);
-        if(m_conn) {
-            LOG_INFO << "TcpClient::disconnect TcpConnection[" << m_conn->getName() << "]";
-            m_conn->shutdown();
+    if(m_connect) {
+        m_connect = false;
+        {
+            MutexType::Lock lock(m_mutex);
+            if(m_conn) {
+                LOG_INFO << "TcpClient::disconnect TcpConnection[" << m_conn->getName() << "]";
+                m_conn->shutdown();
+            }
         }
     }
 }
@@ -110,6 +112,7 @@ void TcpClient::newConnection(int32_t sockfd) {
 }
 
 void TcpClient::removeConnection(const TcpConnectionPtr &conn) {
+    LOG_INFO << "TcpClient::removeConnection [" << conn->getName() << "]";
     m_loop->assertInLoopThread();
     {
         MutexType::Lock lock(m_mutex);
@@ -119,7 +122,7 @@ void TcpClient::removeConnection(const TcpConnectionPtr &conn) {
     m_loop->queueInLoop(std::bind(&TcpConnection::connectDestroyed, conn));
     if(m_retry && m_connect) {
         LOG_INFO << "TcpClient::removeConnection [" << conn->getName()
-            << "] reconnecting to " << m_connector->getServerAddr()->toIpPort();
+            << "] reconnecting to " << m_connector->getServerAddr().toIpPort();
         m_connector->restart();
     }
 }

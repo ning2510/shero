@@ -18,7 +18,7 @@ class TcpClient {
 public:
     typedef std::shared_ptr<TcpClient> ptr;
     typedef Mutex MutexType;
-    TcpClient(EventLoop *loop, Address::ptr serverAddr, 
+    TcpClient(EventLoop *loop, const Address &serverAddr, 
         bool retry = false, const std::string &name = "");
     ~TcpClient();
 
@@ -32,7 +32,7 @@ public:
 
     EventLoop *getMainLoop() const { return m_loop; }
     const std::string getName() const { return m_nameArg; }
-    Address::ptr getServerAddr() const { return m_connector->getServerAddr(); }
+    Address getServerAddr() const { return m_connector->getServerAddr(); }
 
     void setConnectionCallback(const ConnectionCallback &cb) { m_connectionCallback = cb; }
     void setMessageCallback(const MessageCallback &cb) { m_messageCallback = cb; }

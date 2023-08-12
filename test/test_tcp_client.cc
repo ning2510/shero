@@ -17,7 +17,7 @@ using namespace std::placeholders;
 
 class EchoClient {
 public:
-    EchoClient(EventLoop *loop, Address::ptr addr, const std::string &name)
+    EchoClient(EventLoop *loop, const Address &addr, const std::string &name)
         : m_connect(false),
           m_loop(loop),
           m_client(loop, addr, false, name) {
@@ -82,7 +82,7 @@ int main() {
     std::cout << "Client tid = " << GetThreadId() << std::endl;
 
     EventLoopThread loopThread;
-    Address::ptr server(new Address(6666));
+    Address server(6666);
 
     EchoClient client(loopThread.startLoop(), server, "echoClient");
     client.connect();

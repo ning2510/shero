@@ -196,10 +196,10 @@ void TcpConnection::forceCloseInLoop() {
 
 // handle event
 void TcpConnection::handleRead() {
-    int32_t saveError;
+    int32_t saveError = 0;
     size_t n = m_input.readFd(m_connfd, &saveError);
     
-    if(n > 0) {
+    if(n > 0 && saveError == 0) {
         m_messageCallback(shared_from_this(), &m_input);
     } else if(n == 0) {
         handleClose();

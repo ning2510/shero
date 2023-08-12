@@ -75,8 +75,10 @@ void HttpServer::onMessage(const TcpConnectionPtr &conn, Buffer *buf) {
         req->setBody(body);
     }
     std::string keep_alive = reqParser->getData()->getHeader("Connection");
+    bool close = true;
     if(!strcasecmp(keep_alive.c_str(), "keep-alive")) {
         req->setClose(false);
+        close = false;
     }
     
     HttpResponse::ptr res(
@@ -89,6 +91,10 @@ void HttpServer::onMessage(const TcpConnectionPtr &conn, Buffer *buf) {
     std::stringstream ss;
     ss << *res;
     conn->send(ss.str());
+
+    if(close) {
+        conn->shutdown();
+    }
 }
 
 

@@ -19,28 +19,10 @@
 namespace shero {
 namespace http {
 
-// struct HttpResult {
-//     typedef std::shared_ptr<HttpResult> ptr;
-
-//     HttpResult(int32_t result, HttpResponse::ptr res, const std::string &error) 
-//         : m_result(result),
-//           m_res(res),
-//           m_error(error) {}
-
-//     std::string toString() const {
-//         std::stringstream ss;
-//         ss << "[HttpResult result = " << m_result 
-//            << " error = " << m_error
-//            << " response = " << (m_res ? m_res->toString() : "nullptr")
-//            << "]";
-//         return ss.str();
-//     }
-
-//     int32_t m_result;
-//     std::string m_error;
-//     HttpResponse::ptr m_res;
-// };
-
+/**
+ *   * Note:
+ *       - HttpClient currently does not support keep-alive
+*/
 class HttpClient {
 public:
     typedef std::shared_ptr<HttpClient> ptr;
@@ -85,18 +67,17 @@ public:
                 const std::map<std::string, std::string> &headers = {},
                 const std::string &body = "");
 
-    
-    void onSendRequest(HttpRequest::ptr req);
+private:
     void connect();
     void disconnect();
 
-    void setSendCallback(const SendRequestCallback &cb) { m_cb = std::move(cb); }
+    void setSendCallback(const SendRequestCallback &cb) { m_cb = cb; }
     bool isConnected() { return m_connect && m_client.isConnected(); }
     EventLoop *getEventLoop() const { return m_loop; }
     sem_t *getSem() { return &m_sem; }
     HttpResponse::ptr getResponse() { return m_res; }
 
-private:
+    void onSendRequest(HttpRequest::ptr req);
     void onConnection(const TcpConnectionPtr &conn);
     void onMessage(const TcpConnectionPtr &conn, Buffer *buf);
 

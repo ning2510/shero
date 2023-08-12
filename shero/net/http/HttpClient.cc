@@ -88,15 +88,25 @@ HttpResponse::ptr HttpClient::DoRequest(HttpMethod method,
     LOG_INFO << "port = " << uri->getPort() << ", host = " << uri->getHost();
 
     // 2. construct HttpClient instance
-    Address addr(uri->getPort(), uri->getHost().c_str());
-    HttpClient::ptr client(new HttpClient(loop, addr, name, retry));
+    Address::ptr addr = uri->createAddress();
+    HttpClient::ptr client(new HttpClient(loop, *addr, name, retry));
 
     // 3. set callback
-    client->setSendCallback(std::bind(&HttpClient::onSendRequest, client, req));
+    // client->setSendCallback(std::bind(&HttpClient::onSendRequest, client.get(), req));
+    std::weak_ptr<HttpClient> client_weak = client;
+    client->setSendCallback([client_weak, req]() {
+        auto client = client_weak.lock();
+        if(client) {
+            client->onSendRequest(req);
+        }
+    });
+
     client->connect();
 
     sem_wait(client->getSem());
-    return client->getResponse();
+    HttpResponse::ptr res = client->getResponse();
+    std::cout << "use count = " << client.use_count() << std::endl;
+    return res;
 }
 
 HttpClient::HttpClient(EventLoop *loop, const Address &serverAddr, 
@@ -105,6 +115,7 @@ HttpClient::HttpClient(EventLoop *loop, const Address &serverAddr,
           m_loop(loop),
           m_client(loop, serverAddr, retry, name),
           m_resHttp(),
+          m_res(nullptr),
           m_cb(nullptr) {
     
     sem_init(&m_sem, 0, 0);
@@ -136,6 +147,12 @@ void HttpClient::onSendRequest(HttpRequest::ptr req) {
         << "\n" << msg;
 
     m_conn->send(msg);
+
+    /**
+     *   如果在 bind 时传递的 client 是 shared_ptr,
+     * bind 会增加引用计数, 清空 m_cb 以减少引用计数
+    */
+    m_cb = nullptr;
 }
 
 // Connect Callback
@@ -175,17 +192,19 @@ void HttpClient::onMessage(const TcpConnectionPtr &conn, Buffer *buf) {
     }
 
     // Before parser
-    for(size_t i = 0; i < m_resHttp.size(); i++) {
-        LOG_INFO << "i = " << i << "\n" << m_resHttp[i];
-    }
+    // for(size_t i = 0; i < m_resHttp.size(); i++) {
+    //     LOG_INFO << "i = " << i << "\n" << m_resHttp[i];
+    // }
 
     std::string msg = m_resHttp[0];
     size_t len = msg.size();
 
     // 1. parser http response
     HttpResponseParser::ptr resParser(new HttpResponseParser);
-    size_t nparser = resParser->execute(msg, len, false);
-    std::cout << "len = " << len << " len2 = " << msg.size() << " nparser = " << nparser << '\n';
+    resParser->execute(msg, len, false);
+
+    // size_t nparser = resParser->execute(msg, len, false);
+    // std::cout << "len = " << len << " len2 = " << msg.size() << " nparser = " << nparser << '\n';
     if(resParser->hasError()) {
         LOG_ERROR << "[HttpClient] Parsing http response message error";
         return ;
@@ -221,9 +240,7 @@ void HttpClient::onMessage(const TcpConnectionPtr &conn, Buffer *buf) {
 
                 len = msg.size();
                 msg[len] = '\0';
-                // LOG_INFO << "len3 = " << len << '\n' << msg;
                 size_t np = resParser->execute(msg, len, true); 
-                // LOG_INFO << "np4 = " << np << " len = " << msg.size() << ' ' << msg[0] << '\n' << msg;
                 if(resParser->hasError()) {
                     LOG_ERROR << "[HttpClient] Parsing http response message error";
                     return ;
@@ -232,8 +249,8 @@ void HttpClient::onMessage(const TcpConnectionPtr &conn, Buffer *buf) {
                 len -= np;
             } while(!resParser->isFinished());
 
-            std::cout << "[HttpClient] Response http message content_len = " 
-                << clientParser->content_len << " len = " << len << '\n';
+            // std::cout << "[HttpClient] Response http message content_len = " 
+            //     << clientParser->content_len << " len = " << len << '\n';
 
             if(clientParser->content_len <= (int32_t)len) {
                 body += msg.substr(0, clientParser->content_len);

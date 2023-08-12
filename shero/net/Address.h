@@ -15,6 +15,9 @@ public:
     Address(const sockaddr_in &addr);
     Address(uint16_t port = 0, const char *address = "0.0.0.0");
 
+    static Address::ptr LookupAddressByHost(const std::string &host, 
+        int32_t family = AF_UNSPEC, int32_t type = 0, int32_t protocol = 0);
+
     int32_t getFamily() const { return m_addr.sin_family; }
 
     const sockaddr *getAddr() const { return (sockaddr *)&m_addr; }

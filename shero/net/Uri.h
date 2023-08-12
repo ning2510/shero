@@ -46,6 +46,8 @@ public:
     std::ostream &dump(std::ostream &os) const;
     std::string toString() const;
 
+    Address::ptr createAddress() const;
+
 private:
     bool isDefaultPort() const;
 

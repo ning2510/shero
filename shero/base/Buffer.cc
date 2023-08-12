@@ -22,7 +22,6 @@ size_t Buffer::readFd(int32_t fd, int32_t *saveErrno) {
 
     const int iovcnt = writable < sizeof(buf) ? 2 : 1;
     const ssize_t rt = ::readv(fd, vec, iovcnt);
-    std::cout << "rt = " << rt << '\n';
     if(rt < 0) {
         *saveErrno = errno;
     } else if(rt <= (ssize_t)writable) {

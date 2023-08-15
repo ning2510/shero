@@ -1,6 +1,7 @@
 #ifndef __SHERO_TCPCONNECTION_H
 #define __SHERO_TCPCONNECTION_H
 
+#include "shero/net/Channel.h"
 #include "shero/net/Address.h"
 #include "shero/base/Buffer.h"
 #include "shero/base/Noncopyable.h"

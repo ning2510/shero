@@ -41,6 +41,11 @@ SET(SRC_FILES
     shero/net/tcp/TcpAcceptor.cc
     shero/net/tcp/TcpConnector.cc
     shero/net/tcp/TcpConnection.cc
+    shero/net/websocket/WSClient.cc
+    shero/net/websocket/WSServer.cc
+    shero/net/websocket/WSServlet.cc
+    shero/net/websocket/WSDispatch.cc
+    shero/net/websocket/WSStructure.cc
 )
 
 ragelmaker(shero/net/Uri.rl SRC_FILES ${CMAKE_CURRENT_SOURCE_DIR}/shero/net)
@@ -52,6 +57,10 @@ add_library(shero SHARED ${SRC_FILES} ${COXTX})
 
 find_library(YAMLCPP yaml-cpp REQUIRED)
 find_library(TINYXML tinyxml REQUIRED)
+find_package(OpenSSL REQUIRED)
+if(OPENSSL_FOUND)
+    include_directories(${OPENSSL_INCLUDE_DIR})
+endif()
 
 SET(LIBS
     shero
@@ -59,6 +68,7 @@ SET(LIBS
     dl
     ${YAMLCPP}
     ${TINYXML}
+    ${OPENSSL_LIBRARIES}
 )
 
 add_subdirectory(test)

@@ -11,6 +11,7 @@ FunctionServlet::FunctionServlet(const ServletCallback &cb)
 }
 
 FunctionServlet::~FunctionServlet() {
+    m_cb = nullptr;
 }
 
 void FunctionServlet::handle(HttpRequest::ptr req, HttpResponse::ptr res) {

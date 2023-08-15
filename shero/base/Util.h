@@ -20,6 +20,13 @@ uint64_t GetCurrentUS();
 std::string Date2Str(time_t ts = time(0), const std::string &format = "%Y%m%d");
 std::string Time2Str(time_t ts = time(0), const std::string &format = "%Y-%m-%d %H:%M:%S");
 
+std::string SHA1sum(const std::string &data);
+std::string SHA1sum(const void *data, size_t len);
+std::string Encodebase64(const std::string &data);
+std::string Encodebase64(const void *data, size_t len);
+
+std::string RandomString(size_t len);
+
 }   // namespace shero
 
 #endif

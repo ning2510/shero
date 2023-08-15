@@ -41,6 +41,9 @@ public:
     bool isClose() const { return m_close; }
     void setClose(bool close) { m_close = close; }
 
+    bool isWebSocket() const { return m_websocket; }
+    void setWebSocket(bool v) { m_websocket = v; }
+
     const MapType &getHeaders() const { return m_headers; }
     void setHeaders(const MapType& v) { m_headers = v; }
 
@@ -70,6 +73,7 @@ private:
     std::string m_fragment;
     std::string m_body;
     bool m_close;   // false: keep-alive    true: close
+    bool m_websocket;
 
     MapType m_headers;
     MapType m_params;
@@ -96,6 +100,9 @@ public:
     bool isClose() const { return m_close; }
     void setClose(bool close) { m_close = close; }
 
+    bool isWebSocket() const { return m_websocket; }
+    void setWebSocket(bool v) { m_websocket = v; }
+
     const MapType &getHeaders() const { return m_headers; }
     void setHeaders(const MapType& v) { m_headers = v; }
 
@@ -113,6 +120,7 @@ private:
     std::string m_body;
     std::string m_reason;
     bool m_close;
+    bool m_websocket;
     
     MapType m_headers;
 };

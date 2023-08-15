@@ -1,6 +1,7 @@
 #ifndef __SHERO_HTTPSERVLET_H
 #define __SHERO_HTTPSERVLET_H
 
+#include "shero/net/AbstractServlet.h"
 #include "shero/net/http/HttpParser.h"
 
 #include <memory>
@@ -10,17 +11,14 @@
 namespace shero {
 namespace http {
 
-class HttpServlet {
+class HttpServlet : public AbstractServlet {
 public:
     typedef std::shared_ptr<HttpServlet> ptr;
-    HttpServlet(const std::string &name) : m_name(name) {}
+    HttpServlet(const std::string &name)
+        : AbstractServlet(name) {}
     virtual ~HttpServlet() {}
 
     virtual void handle(HttpRequest::ptr req, HttpResponse::ptr res) = 0;
-    const std::string getServletName() const { return m_name; }
-
-private:
-    std::string m_name;
 };
 
 class FunctionServlet : public HttpServlet {

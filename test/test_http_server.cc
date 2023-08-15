@@ -9,7 +9,6 @@
 
 void Quit(int sig) {
     shero::EventLoop::GetEventLoop()->quit();
-    // exit(0);
 }
 
 class TestServlet : public shero::http::HttpServlet {

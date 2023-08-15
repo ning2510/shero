@@ -1,29 +1,30 @@
-#ifndef __SHERO_HTTPDISPATCH_H
-#define __SHERO_HTTPDISPATCH_H
+#ifndef __SHERO_WSDISPATCH_H
+#define __SHERO_WSDISPATCH_H
 
-#include "shero/net/http/HttpServlet.h"
+#include "shero/base/Mutex.h"
 #include "shero/net/AbstractDispatch.h"
+#include "shero/net/websocket/WSServlet.h"
+#include "shero/net/websocket/WSStructure.h"
 
 #include <memory>
 
 namespace shero {
-namespace http {
+namespace ws {
 
-class HttpDispatch : public AbstractDispatch {
+class WSDispatch : public AbstractDispatch {
 public:
-    typedef std::shared_ptr<HttpDispatch> ptr;
-    
-    HttpDispatch();
-    ~HttpDispatch();
+    typedef std::shared_ptr<WSDispatch> ptr;
+    WSDispatch();
+    ~WSDispatch();
 
-    void handle(HttpRequest::ptr req, HttpResponse::ptr res);
+    void handle(const std::string &path, WSFrameMessage::ptr req, TcpConnectionPtr conn);
     virtual AbstractServlet::ptr getMatchedServlet(const std::string &uri) override;
 
     virtual void addServlet(const std::string &uri, AbstractServlet::ptr slt) override;
-    void addServlet(const std::string &uri, FunctionServlet::ServletCallback cb);
+    void addServlet(const std::string &uri, FunctionWSServlet::HandleCallback cb);
 
     virtual void addGlobServlet(const std::string &uri, AbstractServlet::ptr slt) override;
-    void addGlobServlet(const std::string &uri, FunctionServlet::ServletCallback cb);
+    void addGlobServlet(const std::string &uri, FunctionWSServlet::HandleCallback cb);
 
     virtual void delServlet(const std::string &uri) override;
     virtual void delGlobServlet(const std::string &uri) override;
@@ -32,7 +33,7 @@ public:
     virtual AbstractServlet::ptr getGlobServlet(const std::string &uri) override;
 };
 
-}   // namespace http
+}   // namespace ws
 }   // namespace shero
 
 #endif

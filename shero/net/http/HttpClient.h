@@ -75,7 +75,7 @@ public:
                 const std::map<std::string, std::string> &headers = {}, 
                 const std::string &body = "");
     
-
+    static HttpResponse::ptr HttpParserResponse(std::string resHttp);
     static HttpResponse::ptr HttpParserResponse(std::vector<std::string> &resHttp);
 
 private:

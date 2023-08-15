@@ -5,7 +5,8 @@
 namespace shero {
 namespace http {
 
-HttpDispatch::HttpDispatch() {
+HttpDispatch::HttpDispatch()
+    : AbstractDispatch() {
     m_default.reset(new NotFoundServlet);
 }
 
@@ -13,11 +14,12 @@ HttpDispatch::~HttpDispatch() {
 }
 
 void HttpDispatch::handle(HttpRequest::ptr req, HttpResponse::ptr res) {
-    auto it = getMatchedServlet(req->getPath());
+    HttpServlet::ptr it = 
+        std::dynamic_pointer_cast<HttpServlet>(getMatchedServlet(req->getPath()));
     it->handle(req, res);
 }
 
-HttpServlet::ptr HttpDispatch::getMatchedServlet(const std::string &uri) {
+AbstractServlet::ptr HttpDispatch::getMatchedServlet(const std::string &uri) {
     RWMutexType::ReadLock rlock(m_mutex);
     auto it = m_servlets.find(uri);
     if(it != m_servlets.end()) {
@@ -33,7 +35,7 @@ HttpServlet::ptr HttpDispatch::getMatchedServlet(const std::string &uri) {
     return m_default;
 }
 
-void HttpDispatch::addServlet(const std::string &uri, HttpServlet::ptr slt) {
+void HttpDispatch::addServlet(const std::string &uri, AbstractServlet::ptr slt) {
     RWMutexType::WriteLock lock(m_mutex);
     m_servlets[uri] = slt;
 }
@@ -43,7 +45,7 @@ void HttpDispatch::addServlet(const std::string &uri, FunctionServlet::ServletCa
     addServlet(uri, slt);
 }
 
-void HttpDispatch::addGlobServlet(const std::string &uri, HttpServlet::ptr slt) {
+void HttpDispatch::addGlobServlet(const std::string &uri, AbstractServlet::ptr slt) {
     delGlobServlet(uri);
     RWMutexType::WriteLock lock(m_mutex);
     m_globServlets.push_back(std::make_pair(uri, slt));
@@ -69,13 +71,13 @@ void HttpDispatch::delGlobServlet(const std::string &uri) {
     }
 }
 
-HttpServlet::ptr HttpDispatch::getServlet(const std::string &uri) {
+AbstractServlet::ptr HttpDispatch::getServlet(const std::string &uri) {
     RWMutexType::ReadLock lock(m_mutex);
     auto it = m_servlets.find(uri);
     return it == m_servlets.end() ? nullptr : it->second;
 }
 
-HttpServlet::ptr HttpDispatch::getGlobServlet(const std::string &uri) {
+AbstractServlet::ptr HttpDispatch::getGlobServlet(const std::string &uri) {
     RWMutexType::ReadLock lock(m_mutex);
     for(auto &it : m_globServlets) {
         if(it.first == uri) {

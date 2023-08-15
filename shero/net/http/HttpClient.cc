@@ -104,8 +104,11 @@ HttpRequest::ptr HttpClient::HttpConstructRequest(HttpMethod method, Uri::ptr ur
 
     bool host = false;
     for(auto &i : headers) {
-        if(strcasecmp(i.first.c_str(), "connection") == 0) {
-            if(strcasecmp(i.second.c_str(), "keep-alive") == 0) {
+        if(strcasecmp(i.first.c_str(), "Connection") == 0) {
+            if(strcasecmp(i.second.c_str(), "Upgrade") == 0) {
+                req->setHeader("Connection", "Upgrade");
+                req->setWebSocket(true);
+            } else if(strcasecmp(i.second.c_str(), "keep-alive") == 0) {
                 req->setClose(false);
             }
             continue;
@@ -121,8 +124,14 @@ HttpRequest::ptr HttpClient::HttpConstructRequest(HttpMethod method, Uri::ptr ur
         req->setHeader("Host", uri->getHost());
     }
 
-    LOG_INFO << "port = " << uri->getPort() << ", host = " << uri->getHost();
+    LOG_INFO << "port = " << uri->getPort() << ", host = " << uri->getHost()
+        << *req;
     return req;
+}
+
+HttpResponse::ptr HttpClient::HttpParserResponse(std::string resHttp) {
+    std::vector<std::string> res{resHttp};
+    return HttpParserResponse(res);
 }
 
 HttpResponse::ptr HttpClient::HttpParserResponse(std::vector<std::string> &resHttp) {
@@ -298,15 +307,14 @@ void HttpClient::onConnection(const TcpConnectionPtr &conn) {
             MutexType::Lock lock(m_mutex);
             m_conn = conn;
             m_connect = true;
-            if(m_cb) {
-                m_cb();
-            }
+        }
+        if(m_cb) {
+            m_cb();
         }
     } else {
         LOG_INFO << "[HttpClient] Connectuion DOWN : " << conn->getPeerAddr().toIpPort();
         {
             MutexType::Lock lock(m_mutex);
-            m_conn.reset();
             m_client.disconnect();
             m_connect = false;
             onMessage(nullptr, nullptr);

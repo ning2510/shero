@@ -101,7 +101,8 @@ void EventLoop::runInLoop(Functor cb) {
 void EventLoop::queueInLoop(Functor cb) {
     {
         RWMutexType::WriteLock lock(m_mutex);
-        m_pendingFunctors.emplace_back(cb);
+        // m_pendingFunctors.emplace_back(cb);
+        m_pendingFunctors.push_back(std::move(cb));
     }
 
     if(!isInLoopThread() || m_callingpendingFunctors) {
@@ -119,7 +120,9 @@ void EventLoop::doPendingFunctors() {
     }
 
     for(auto &functor : functors) {
-        functor();
+        if(functor) {
+            functor();
+        }
     }
 
     m_callingpendingFunctors = false;

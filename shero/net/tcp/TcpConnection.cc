@@ -249,6 +249,7 @@ void TcpConnection::handleClose() {
 
     m_connectionCallback(shared_from_this());
     m_closeCallback(shared_from_this());
+    connectDestroyed();
 }
 
 void TcpConnection::handleError() {

@@ -9,6 +9,7 @@
 
 void Quit(int sig) {
     shero::EventLoop::GetEventLoop()->quit();
+    exit(0);
 }
 
 class TestServlet : public shero::http::HttpServlet {
@@ -35,6 +36,7 @@ int main() {
     // set keep-alive false
     shero::http::HttpServer::ptr server(
             new shero::http::HttpServer(loop, address, "HttpServer", false));
+    server->setThreadNums(8);
 
     shero::http::HttpDispatch *dispatch = server->getHttpDispatch();
     dispatch->addServlet("/shero/xxx", 

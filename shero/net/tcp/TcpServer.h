@@ -2,6 +2,7 @@
 #define __SHERO_TCPSERVER_H
 
 #include "shero/net/Socket.h"
+#include "shero/base/Mutex.h"
 #include "shero/net/Address.h"
 #include "shero/base/Noncopyable.h"
 #include "shero/net/tcp/Callbacks.h"
@@ -22,6 +23,7 @@ class EventLoop;
 class TcpServer : public Noncopyable {
 public:
     typedef std::shared_ptr<TcpServer> ptr;
+    typedef Mutex MutexType;
     typedef std::function<void(EventLoop *)> ThreadInitCallback;
 
     TcpServer(EventLoop *mainLoop, 
@@ -47,6 +49,7 @@ private:
     int32_t m_nextConnId;
     std::string m_nameArg;
 
+    MutexType m_mutex;
     EventLoop *m_mainLoop;
     CoroutinePool *m_coroutinePool;
 

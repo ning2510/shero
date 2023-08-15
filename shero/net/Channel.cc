@@ -126,7 +126,7 @@ ChannelManager::ChannelManager(int32_t size /*= 256*/)
 Channel::ptr ChannelManager::getChannel(int32_t fd, EventLoop *loop /*= nullptr*/) {
     MutexType::Lock lock(m_mutex);
     int32_t size = (int32_t)m_channels.size();
-    if(fd > (int32_t)m_channels.size()) {
+    if(fd >= (int32_t)m_channels.size()) {
         int32_t newSize = (size * 1.5) <= fd ? fd : size * 1.5;
         m_channels.resize(newSize + 1);
     }

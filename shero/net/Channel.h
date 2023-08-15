@@ -93,7 +93,7 @@ class ChannelManager {
 public:
     typedef std::shared_ptr<ChannelManager> ptr;
     typedef Mutex MutexType;
-    ChannelManager(int32_t size = 256);
+    ChannelManager(int32_t size = 512);
 
     Channel::ptr getChannel(int32_t fd, EventLoop *loop = nullptr);
 

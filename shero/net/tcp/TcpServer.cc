@@ -67,7 +67,10 @@ void TcpServer::newConnection(int32_t connfd, Address peerAddr) {
         << "] created"<< ", current loop = " << subLoop << ", connfd = " << connfd;
     
     TcpConnectionPtr conn(new TcpConnection(this, connfd, subLoop, connName, peerAddr));
-    m_connections[connfd] = conn;
+    {
+        MutexType::Lock lock(m_mutex);
+        m_connections[connfd] = conn;
+    }
 
     conn->setConnectionCallback(m_connectionCallback);
     conn->setMessageCallback(m_messageCallback);
@@ -79,7 +82,12 @@ void TcpServer::newConnection(int32_t connfd, Address peerAddr) {
 }
 
 void TcpServer::removeConnection(const TcpConnectionPtr &conn) {
-    m_mainLoop->runInLoop(std::bind(&TcpServer::removeConnectionInLoop, this, conn));
+    {
+        MutexType::Lock lock(m_mutex);
+        m_connections.erase(conn->getConnfd());
+        // m_mainLoop->runInLoop(std::bind(&TcpServer::removeConnectionInLoop, this, conn));
+    }
+    // m_mainLoop->runInLoop(std::bind(&TcpServer::removeConnectionInLoop, this, conn));
 }
 
 void TcpServer::removeConnectionInLoop(const TcpConnectionPtr &conn) {

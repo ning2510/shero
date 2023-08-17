@@ -21,7 +21,7 @@ public:
 
 private:
     void update(int32_t opt, Channel *channel);
-    void fillActiveChannels(int32_t numEvents, ChannelList *activeChannels);
+    void fillActiveChannels(int32_t numEvents, ChannelList *activeChannels) const;
 
 private:
     typedef std::vector<epoll_event> EventList;

@@ -12,11 +12,10 @@ namespace http {
 class HttpDispatch : public AbstractDispatch {
 public:
     typedef std::shared_ptr<HttpDispatch> ptr;
-    
     HttpDispatch();
     ~HttpDispatch();
 
-    void handle(HttpRequest::ptr req, HttpResponse::ptr res);
+    void handle(const HttpRequest& req, HttpResponse* res);
     virtual AbstractServlet::ptr getMatchedServlet(const std::string &uri) override;
 
     virtual void addServlet(const std::string &uri, AbstractServlet::ptr slt) override;

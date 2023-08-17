@@ -5,7 +5,6 @@
 #include "shero/base/Thread.h"
 #include "shero/base/Noncopyable.h"
 
-#include <thread>
 #include <memory>
 #include <pthread.h>
 #include <functional>

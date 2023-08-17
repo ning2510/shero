@@ -5,6 +5,8 @@
 
 #include <vector>
 #include <memory>
+#include <assert.h>
+#include <algorithm>
 
 namespace shero {
 
@@ -89,6 +91,12 @@ public:
         m_readIndex = m_writeIndex = m_freePrepend;
     }
 
+    void retrieveUntil(const char *end) {
+        assert(readIndex() <= end);
+        assert(end <= writeIndex());
+        retrieve(end - readIndex());
+    }
+
     std::string retrieveAsString(size_t len) {
         std::string buf(readIndex(), len);
         retrieve(len);
@@ -97,6 +105,11 @@ public:
     
     std::string retrieveAllAsString() {
         return retrieveAsString(readableBytes());
+    }
+
+    const char *findCRLF() const {
+        const char *crlf = std::search(readIndex(), writeIndex(), kCRLF, kCRLF + 2);
+        return crlf == writeIndex() ? NULL : crlf;
     }
 
     size_t readableBytes() const { return m_writeIndex - m_readIndex; }
@@ -135,6 +148,7 @@ private:
     size_t m_readIndex;
     size_t m_writeIndex;
     std::vector<char> m_buffer;
+    static const char kCRLF[];
 };
 
 }   // namespace shero

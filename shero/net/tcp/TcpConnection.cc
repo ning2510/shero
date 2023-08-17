@@ -1,41 +1,17 @@
-#include "shero/base/Log.h"
+// #include "shero/base/Log.h"
 #include "shero/net/Socket.h"
 #include "shero/net/Channel.h"
 #include "shero/net/EventLoop.h"
-#include "shero/net/tcp/TcpClient.h"
+// #include "shero/net/tcp/TcpClient.h"
 #include "shero/net/tcp/TcpConnection.h"
-#include "shero/coroutine/CoroutinePool.h"
 
+#include <assert.h>
 #include <string.h>
 #include <unistd.h>
 
 namespace shero {
 
-// TcpServer will create it by this method
-TcpConnection::TcpConnection(TcpServer *server, int32_t connfd, EventLoop *subLoop, 
-            const std::string &name, Address peerAddr)
-    : m_stop(false),
-      m_connfd(connfd),
-      m_name(name),
-      m_state(Connecting),
-      m_input(),
-      m_output(),
-      m_peerAddr(peerAddr),
-      m_subLoop(subLoop) {
-    
-    m_channel = ChannelMgr::GetInstance()->getChannel(m_connfd, subLoop);
-    m_channel->setCloseCallback(std::bind(&TcpConnection::handleClose, this));
-    m_channel->setErrorCallback(std::bind(&TcpConnection::handleError, this));
-    
-    m_coroutine = CoroutinePool::GetCoroutinePool()->getCoroutineInstance();
-    m_coroutine->setCallback(std::bind(&TcpConnection::MainLoopFunc, this));
-
-    LOG_INFO << "[Server] TcpConnection constructor [" << m_name 
-        << "], connfd = " << m_connfd;
-}
-
-// TcpClient will create it by this method
-TcpConnection::TcpConnection(TcpClient *client, int32_t connfd, EventLoop *subLoop, 
+TcpConnection::TcpConnection(int32_t connfd, EventLoop *subLoop, 
             const std::string &name, Address peerAddr)
     : m_stop(false),
       m_connfd(connfd),
@@ -46,39 +22,28 @@ TcpConnection::TcpConnection(TcpClient *client, int32_t connfd, EventLoop *subLo
       m_output(),
       m_peerAddr(peerAddr),
       m_subLoop(subLoop) {
-    
+
     m_channel->setReadCallback(std::bind(&TcpConnection::handleRead, this));
     m_channel->setWriteCallback(std::bind(&TcpConnection::handleWrite, this));
     m_channel->setCloseCallback(std::bind(&TcpConnection::handleClose, this));
     m_channel->setErrorCallback(std::bind(&TcpConnection::handleError, this));
 
-    LOG_INFO << "[Client] TcpConnection constructor [" << m_name 
-        << "], connfd = " << m_connfd;
+    // int optval = 1;
+    // ::setsockopt(m_connfd, SOL_SOCKET, SO_KEEPALIVE,
+    //             &optval, static_cast<socklen_t>(sizeof optval));
+
 }
 
 TcpConnection::~TcpConnection() {
+    assert(m_state == Disconnected);
     m_stop = true;
-    close(m_connfd);
-    LOG_INFO << "TcpConnection destructor [" << m_name 
-        << "], connfd = " << m_connfd;
+    // LOG_INFO << "TcpConnection destructor [" << m_name 
+    //     << "], connfd = " << m_connfd;
 }
 
-void TcpConnection::MainLoopFunc() {
-    while(!m_stop) {
-        handleRead();
-    }
-}
-
-// TcpServer method
-void TcpConnection::ServerConnectEstablished() {
-    setState(Connected);
-    m_channel->tie(shared_from_this());
-    m_connectionCallback(shared_from_this());
-    Coroutine::Resume(m_coroutine.get());
-}
-
-// TcpClient method
-void TcpConnection::ClientconnectEstablished() {
+void TcpConnection::connectEstablished() {
+    m_subLoop->assertInLoopThread();
+    assert(m_state == Connecting);
     setState(Connected);
     m_channel->tie(shared_from_this());
     m_channel->addListenEvents(IOEvent::READ);
@@ -86,6 +51,7 @@ void TcpConnection::ClientconnectEstablished() {
 }
 
 void TcpConnection::connectDestroyed() {
+    m_subLoop->assertInLoopThread();
     if(m_state == Connected) {
         setState(Disconnected);
         m_channel->delAllListenEvents();
@@ -97,7 +63,7 @@ void TcpConnection::connectDestroyed() {
 // send
 void TcpConnection::send(const std::string &data) {
     if(m_state != Connected) {
-        LOG_ERROR << "TcpConnection [" << m_name << "] has disconnected";
+        // LOG_ERROR << "TcpConnection [" << m_name << "] has disconnected";
         return ;
     }
 
@@ -118,14 +84,16 @@ void TcpConnection::sendInLoopPtr(
 }
 
 void TcpConnection::sendInLoop(const void *data, size_t len) {
+    m_subLoop->assertInLoopThread();
     ssize_t nwrote = 0;
     size_t remaining = len;
     bool err = false;
 
-    LOG_INFO << "send data = " << (const char *)data << ", len = " << len;
+    // LOG_INFO << "send data = " << (const char *)data << ", len = " << len
+        // << " fd = " << m_channel->getFd();
     if(m_state == Disconnected) {
-        LOG_ERROR << "TcpConnection [" << m_name 
-            << "] is closed already, give up send data";
+        // LOG_ERROR << "TcpConnection [" << m_name 
+        //     << "] is closed already, give up send data";
         return ;
     }
 
@@ -141,7 +109,7 @@ void TcpConnection::sendInLoop(const void *data, size_t len) {
         } else {
             nwrote = 0;
             if(errno != EWOULDBLOCK) {
-                LOG_ERROR << "TcpConnection::sendInLoop error";
+                // LOG_ERROR << "TcpConnection::sendInLoop error";
 
                 if(errno == EPIPE || errno == ECONNRESET) {     // SIGPIPE  RESET
                     err = true;
@@ -165,15 +133,16 @@ void TcpConnection::shutdown() {
     if(m_state == Connected) {
         setState(Disconnecting);
         m_subLoop->runInLoop(
-            std::bind(&TcpConnection::shutdownInLoop, shared_from_this()));
+            std::bind(&TcpConnection::shutdownInLoop, this));
     }
 }
 
 void TcpConnection::shutdownInLoop() {
+    m_subLoop->assertInLoopThread();
     // 数据全部发送完毕
     if(!m_channel->isWriting()) {
         if(::shutdown(m_connfd, SHUT_WR) < 0) {
-            LOG_ERROR << "::shutdown error";
+            // LOG_ERROR << "::shutdown error";
         }
     }
 }
@@ -182,7 +151,8 @@ void TcpConnection::shutdownInLoop() {
 // forceClose
 void TcpConnection::forceClose() {
     if((m_state == Connected) || (m_state = Disconnecting)) {
-        m_subLoop->runInLoop(
+        setState(Disconnecting);
+        m_subLoop->queueInLoop(
             std::bind(&TcpConnection::forceCloseInLoop, shared_from_this()));
     }
 }
@@ -196,22 +166,24 @@ void TcpConnection::forceCloseInLoop() {
 
 // handle event
 void TcpConnection::handleRead() {
+    m_subLoop->assertInLoopThread();
     int32_t saveError = 0;
     size_t n = m_input.readFd(m_connfd, &saveError);
     
-    if(n > 0 && saveError == 0) {
+    if(n > 0) {
         m_messageCallback(shared_from_this(), &m_input);
     } else if(n == 0) {
         handleClose();
     } else {
         errno = saveError;
-        LOG_ERROR << "TcpConnection::hanleRead error"
-            << " errno = " << errno << " strerror = " << strerror(errno);
+        // LOG_ERROR << "TcpConnection::hanleRead error"
+        //     << " errno = " << errno << " strerror = " << strerror(errno);
         handleError();
     }
 }
 
 void TcpConnection::handleWrite() {
+    m_subLoop->assertInLoopThread();
     if(m_channel->isWriting()) {
         int32_t saveError;
         size_t n = m_output.writeFd(m_connfd, &saveError);
@@ -226,30 +198,29 @@ void TcpConnection::handleWrite() {
                 if(m_state == Disconnecting) {
                     shutdownInLoop();
                 }
-            } else {
-                // 没写完要继续设置写回调，因为可能会被 write hook 中设置的写会调覆盖
-                m_channel->setWriteCallback(std::bind(&TcpConnection::handleWrite, this));
             }
         } else {
-            LOG_ERROR << "TcpConnection::handleWrite error"
-                << " errno = " << errno << " strerror = " << strerror(errno);
+            // LOG_ERROR << "TcpConnection::handleWrite error"
+            //     << " errno = " << errno << " strerror = " << strerror(errno);
         }
     } else {
-        LOG_ERROR << "TcpConnection connfd = " << m_connfd
-            << " is down, no more writing";
+        // LOG_ERROR << "TcpConnection connfd = " << m_connfd
+        //     << " is down, no more writing";
     }
 }
 
 void TcpConnection::handleClose() {
-    LOG_INFO << "TcpConnection::handleClose connfd = " 
-        << m_connfd << ", state = " << m_state;
-    
+    m_subLoop->assertInLoopThread();
+    // LOG_INFO << "TcpConnection::handleClose connfd = " 
+    //     << m_connfd << ", state = " << m_state;
+
+    assert(m_state == Connected || m_state == Disconnecting);
     setState(Disconnected);
     m_channel->delAllListenEvents();
 
-    m_connectionCallback(shared_from_this());
-    m_closeCallback(shared_from_this());
-    connectDestroyed();
+    TcpConnectionPtr guardConn(shared_from_this());
+    m_connectionCallback(guardConn);
+    m_closeCallback(guardConn);
 }
 
 void TcpConnection::handleError() {
@@ -261,8 +232,9 @@ void TcpConnection::handleError() {
     } else {
         error = optval;
     }
-    LOG_ERROR << "TcpConnection::handleError name = " << m_name
-        << " - SO_ERROR = " << error << ", strerror = " << strerror(error);
+    (void)error;
+    // LOG_ERROR << "TcpConnection::handleError name = " << m_name
+    //     << " - SO_ERROR = " << error << ", strerror = " << strerror(error);
 }
 
 }   // namespace shero

@@ -3,7 +3,6 @@
 
 #include "shero/base/Mutex.h"
 #include "shero/net/AbstractServlet.h"
-#include "shero/net/http/HttpParser.h"
 
 #include <vector>
 #include <memory>
@@ -22,7 +21,6 @@ public:
     virtual AbstractServlet::ptr getMatchedServlet(const std::string &uri) = 0;
 
     virtual void addServlet(const std::string &uri, AbstractServlet::ptr slt) = 0;
-
     virtual void addGlobServlet(const std::string &uri, AbstractServlet::ptr slt) = 0;
 
     virtual void delServlet(const std::string &uri) = 0;

@@ -56,17 +56,13 @@ void TimerEvent::resetArrive() {
 }
 
 // Timer
-Timer::Timer(EventLoop *loop /*= nullptr*/) {
+Timer::Timer(EventLoop *loop) {
     m_fd = timerfd_create(CLOCK_MONOTONIC, TFD_NONBLOCK | TFD_CLOEXEC);
     if(m_fd < 0) {
         LOG_ERROR << "timerfd_create error, strerror = " << strerror(errno);
     }
     LOG_DEBUG << "timerfd_create susscess, fd = " << m_fd;
 
-    loop = loop ? loop : EventLoop::GetEventLoop();
-    if(!loop) {
-        LOG_FATAL << "Please create EventLoop instance in this thread";
-    }
     m_channel = new Channel(loop, m_fd);
     m_channel->addListenEvents(IOEvent::READ);
     m_channel->setReadCallback(std::bind(&Timer::onTimer, this));
@@ -74,6 +70,7 @@ Timer::Timer(EventLoop *loop /*= nullptr*/) {
 
 Timer::~Timer() {
     LOG_INFO << "~Timer";
+    m_channel->delAllListenEvents();
     m_channel->removeFromLoop();
     if(m_channel) {
         delete m_channel;

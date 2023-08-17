@@ -1,8 +1,8 @@
-#include "shero/base/Log.h"
 #include "shero/base/Util.h"
 #include "shero/base/Thread.h"
 
 #include <assert.h>
+#include <iostream>
 
 namespace shero {
 
@@ -14,7 +14,7 @@ Thread::Thread(Callback cb, const std::string &name /*= ""*/)
 }
 
 Thread::~Thread() {
-    LOG_INFO << "~Thread " << m_tid;
+    // std::cout << "~Thread\n";
     join();
 }
 

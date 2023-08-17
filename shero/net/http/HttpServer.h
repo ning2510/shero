@@ -1,43 +1,35 @@
 #ifndef __SHERO_HTTPSERVER_H
 #define __SHERO_HTTPSERVER_H
 
-#include "shero/base/Buffer.h"
-#include "shero/net/Address.h"
-#include "shero/net/EventLoop.h"
 #include "shero/net/tcp/TcpServer.h"
+#include "shero/net/http/HttpCommon.h"
 #include "shero/net/http/HttpDispatch.h"
-
-#include <memory>
 
 namespace shero {
 namespace http {
 
-class HttpServer {
+class HttpServer : public Noncopyable {
 public:
-    typedef std::shared_ptr<HttpServer> ptr;
-    HttpServer(EventLoop *loop, const Address &addr, 
-            const std::string &name, bool keepAlive = false);
-    ~HttpServer();
+    typedef std::function<void (const HttpRequest &req, HttpResponse *res)> HttpCallback;
 
-    static HttpRequest::ptr HttpParserRequest(Buffer *buf);
-    static HttpRequest::ptr HttpParserRequest(std::string msg);
+    HttpServer(EventLoop *loop,
+        const Address& listenAddr, const std::string& name);
+    ~HttpServer() {}
 
     void start();
-    void stop();
-    void setThreadNums(int32_t nums);
 
-    bool isKeepAlive() const { return m_keepAlive; }
-    EventLoop *getEventLoop() const { return m_loop; }
+    EventLoop* getLoop() const { return m_server.getLoop(); }
     HttpDispatch *getHttpDispatch() const { return m_dispatch.get(); }
+    void setHttpCallback(const HttpCallback& cb) { m_httpCallback = cb; }
+    void setThreadNums(int numThreads) { m_server.setThreadNums(numThreads); }
 
 private:
     void onConnection(const TcpConnectionPtr &conn);
     void onMessage(const TcpConnectionPtr &conn, Buffer *buf);
+    void onRequest(const TcpConnectionPtr &conn, const HttpRequest &req);
 
-private:
-    bool m_keepAlive;
-    EventLoop *m_loop;
     TcpServer m_server;
+    HttpCallback m_httpCallback;
     HttpDispatch::ptr m_dispatch;
 };
 

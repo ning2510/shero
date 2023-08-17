@@ -2,7 +2,6 @@
 #include "shero/base/Util.h"
 #include "shero/net/Address.h"
 #include "shero/net/EventLoop.h"
-#include "shero/coroutine/Hook.h"
 #include "shero/net/tcp/TcpServer.h"
 
 #include <signal.h>
@@ -10,9 +9,11 @@
 using namespace shero;
 using namespace std::placeholders;
 
-void Quit(int sig) {
-    EventLoop::GetEventLoop()->quit();
-}
+EventLoop loop;
+
+// void Quit(int sig) {
+//     loop.quit();
+// }
 
 class EchoServer {
 public:
@@ -52,18 +53,17 @@ private:
 };
 
 int main() {
-    // set_hook_enable(false);
-    signal(SIGINT, Quit);
+    // signal(SIGINT, Quit);
 
-    EventLoop *loop = EventLoop::GetEventLoop();
     std::cout << "Server tid = " << GetThreadId() 
-        << ", main loop = " << loop << std::endl;
+        << ", main loop = " << &loop << std::endl;
     
     Address addr(6666);
     
-    EchoServer server(loop, addr, "EchoServer");
+    EchoServer server(&loop, addr, "EchoServer");
     server.start();
 
+    loop.loop();
     std::cout << "main end\n";
 
     return 0;

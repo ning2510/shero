@@ -13,9 +13,9 @@ HttpDispatch::HttpDispatch()
 HttpDispatch::~HttpDispatch() {
 }
 
-void HttpDispatch::handle(HttpRequest::ptr req, HttpResponse::ptr res) {
+void HttpDispatch::handle(const HttpRequest& req, HttpResponse* res) {
     HttpServlet::ptr it = 
-        std::dynamic_pointer_cast<HttpServlet>(getMatchedServlet(req->getPath()));
+        std::dynamic_pointer_cast<HttpServlet>(getMatchedServlet(req.getPath()));
     it->handle(req, res);
 }
 

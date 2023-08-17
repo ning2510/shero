@@ -1,10 +1,9 @@
-#include "shero/net/EventLoop.h"
 #include "shero/net/EventLoopThread.h"
+#include "shero/net/EventLoop.h"
 
 #include <assert.h>
-#include <iostream>
 
-namespace shero {
+using namespace shero;
 
 EventLoopThread::EventLoopThread(
         const ThreadInitCallback &cb /*= nullptr*/,
@@ -18,42 +17,42 @@ EventLoopThread::EventLoopThread(
 }
 
 EventLoopThread::~EventLoopThread() {
-    LOG_INFO << "~EventLoopThread";
+    // LOG_INFO << "~EventLoopThread";
     if(m_loop != nullptr) {
         m_loop->quit();
         m_thread.join();
     }
 }
 
-EventLoop *EventLoopThread::startLoop() {
+EventLoop* EventLoopThread::startLoop() {
+    assert(!m_thread.isStart());
     m_thread.start();
-    
-    EventLoop *loop = nullptr;
-        {
-            MutexType::Lock lock(m_mutex);
-            while(m_loop == nullptr) {
-                pthread_cond_wait(&m_cond, m_mutex.getMutex());
-            }
-            loop = m_loop;
+
+    EventLoop* loop = nullptr;
+    {
+        Mutex::Lock lock(m_mutex);
+        while (m_loop == nullptr) {
+            pthread_cond_wait(&m_cond, m_mutex.getMutex());
         }
+        loop = m_loop;
+    }
     return loop;
 }
 
 void EventLoopThread::threadFunc() {
-    EventLoop *loop = EventLoop::GetEventLoop();
+    EventLoop loop;
     if(m_cb) {
-        m_cb(loop);
+        m_cb(&loop);
     }
 
     {
-        MutexType::Lock lock(m_mutex);
-        m_loop = loop;
+        Mutex::Lock lock(m_mutex);
+        m_loop = &loop;
         pthread_cond_signal(&m_cond);
     }
 
-    loop->loop();
-    MutexType::Lock lock(m_mutex);
-    m_loop = nullptr;
+  loop.loop();
+  Mutex::Lock lock(m_mutex);
+  m_loop = nullptr;
 }
 
-}   // namespace shero

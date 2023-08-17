@@ -24,9 +24,10 @@ public:
     virtual void updateChannel(Channel *channel) = 0;
     virtual void removeChannel(Channel *channel) = 0;
     
-    bool hasChannel(Channel *channel);
+    virtual bool hasChannel(Channel *channel) const;
 
     static Poller *newDefaultPoller(EventLoop *loop);
+    void assertInLoopThread() const;
 
 protected:
     ChannelMap m_channelMap;

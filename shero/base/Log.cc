@@ -1,6 +1,5 @@
 #include "shero/base/Log.h"
 #include "shero/base/Util.h"
-#include "shero/coroutine/Coroutine.h"
 
 #include <time.h>
 #include <stdio.h>
@@ -19,7 +18,7 @@ void Exit(int sig) {
 
 struct _SignalIniter {
     _SignalIniter() {
-        signal(SIGINT, Exit);
+        // signal(SIGINT, Exit);
     }
 };
 
@@ -120,7 +119,7 @@ std::stringstream &LogEvent::getSS() {
          << "[" << LogLevel::Level2String(m_level) << "]\t"
          << "[" << GetPid() << "]\t"
          << "[" << GetThreadId() << "]\t"
-         << "[" << Coroutine::GetCurCoroutine()->getCorId() << "]\t"
+         << "[" << 0 << "]\t"
          << "[" << m_file << ":" << m_line << "]\t";
 
     return m_ss;
@@ -173,7 +172,7 @@ void AsyncLogger::join() {
     pthread_join(m_thread, nullptr);
 }
 
-void AsyncLogger::push(std::vector<std::string> &buffer) {
+void AsyncLogger::push(std::vector<std::string> buffer) {
     MutexType::Lock lock(m_mutex);
     m_queue.push(buffer);
     lock.unlock();

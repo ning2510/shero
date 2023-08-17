@@ -132,7 +132,6 @@ HttpMethod CharsToHttpMethod(const char *str);
 std::string HttpMethodToString(const HttpMethod &method);
 std::string HttpStatusToString(const HttpStatus &status);
 
-
 }   // namespace http
 }   // namespace shero
 

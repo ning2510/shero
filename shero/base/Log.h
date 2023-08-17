@@ -133,7 +133,7 @@ public:
 
     void stop();
     void join();
-    void push(std::vector<std::string> &buffer);
+    void push(std::vector<std::string> buffer);
 
     static void *mainLoop(void *arg);
 

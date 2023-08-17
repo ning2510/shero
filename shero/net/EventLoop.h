@@ -1,7 +1,7 @@
 #ifndef __SHERO_EVENTLOOP_H
 #define __SHERO_EVENTLOOP_H
 
-#include "shero/base/Log.h"
+// #include "shero/base/Log.h"
 #include "shero/base/Util.h"
 #include "shero/base/Mutex.h"
 #include "shero/net/Channel.h"
@@ -13,28 +13,24 @@
 
 namespace shero {
 
-class EventLoop {
+class EventLoop : public Noncopyable {
 public:
     typedef std::shared_ptr<EventLoop> ptr;
     typedef RWMutex RWMutexType;
     typedef std::function<void()> Functor;
 
-    static EventLoop *GetEventLoop();
-    ~EventLoop();
+    EventLoop();
+    ~EventLoop();  
 
-    void updateChannel(Channel *channel);
-    void removeChannel(Channel *channel);
-    bool hasChannel(Channel *channel);
+    void updateChannel(Channel* channel);
+    void removeChannel(Channel* channel);
+    bool hasChannel(Channel* channel);
 
     void loop();
     void quit();
     void runInLoop(Functor cb);
     void queueInLoop(Functor cb);
     bool isInLoopThread() { return m_tid == GetThreadId(); }
-    void abortNotInLoopThread() {
-        LOG_FATAL << "EventLoop::abortNotInLoopThread - EventLoop[" << this 
-            << "], its thread id = " << m_tid << ", current thread id = " << GetThreadId();
-    }
     void assertInLoopThread() {
         if(!isInLoopThread()) {
             abortNotInLoopThread();
@@ -47,7 +43,7 @@ public:
     int32_t getWakeupFd() const { return m_wakeupFd; }
 
 private:
-    EventLoop();
+    void abortNotInLoopThread();
     void handleRead();
     void doPendingFunctors();
 
@@ -56,18 +52,21 @@ private:
     static const int m_pollTimeMs;
 
     pid_t m_tid;
-    std::atomic_bool m_looping;
+    bool m_looping;
     RWMutexType m_mutex;
 
     int32_t m_wakeupFd;
-    Channel::ptr m_wakeupChannel;
+    std::unique_ptr<Channel> m_wakeupChannel;
     std::unique_ptr<Poller> m_poller;
+    
+    bool m_eventHandling;
+    bool m_callingpendingFunctors;
 
+    Channel* m_currentActiveChannel;
     ChannelList m_activeChannels;
-    std::atomic_bool m_callingpendingFunctors;
     std::vector<Functor> m_pendingFunctors;
 };
 
-}   // namespace shero
+}  // namespace shero
 
 #endif

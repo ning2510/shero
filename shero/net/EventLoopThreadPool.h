@@ -15,7 +15,7 @@ class EventLoopThreadPool : public Noncopyable {
 public:
     typedef std::shared_ptr<EventLoopThreadPool> ptr;
     typedef std::function<void(EventLoop *)> ThreadInitCallback;
-    EventLoopThreadPool(EventLoop *baseLoop, const std::string nameArg = "");
+    EventLoopThreadPool(EventLoop *baseLoop, const std::string &nameArg = "");
     ~EventLoopThreadPool();
 
     void start(const ThreadInitCallback &cb = nullptr);
@@ -40,6 +40,6 @@ private:
     std::vector<std::unique_ptr<EventLoopThread> > m_threads;
 };
 
-}   // namespace shero
+}  // namespace shero
 
 #endif

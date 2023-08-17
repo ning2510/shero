@@ -1,9 +1,13 @@
 #include "shero/net/EventLoopThreadPool.h"
+#include "shero/base/Endian.h"
 
-namespace shero {
+#include <stdio.h>
+#include <assert.h>
+
+using namespace shero;
 
 EventLoopThreadPool::EventLoopThreadPool(
-        EventLoop *baseLoop, const std::string nameArg /*= ""*/)
+        EventLoop *baseLoop, const std::string &nameArg /*= ""*/)
         : m_start(false),
           m_next(0),
           m_numThreads(0),
@@ -12,16 +16,14 @@ EventLoopThreadPool::EventLoopThreadPool(
 }
 
 EventLoopThreadPool::~EventLoopThreadPool() {
-    for(auto &i : m_threads) {
-        i.reset();
-    }
 }
 
-void EventLoopThreadPool::start(const ThreadInitCallback &cb /*= nullptr*/) {
-    m_start = true;
+void EventLoopThreadPool::start(const ThreadInitCallback& cb) {
+    assert(!m_start);
     m_baseLoop->assertInLoopThread();
+    m_start = true;
 
-    for(int32_t i = 0; i < m_numThreads; i++) {
+    for (int i = 0; i < m_numThreads; ++i) {
         char buf[m_name.size() + 32];
         snprintf(buf, sizeof(buf), "%s%d", m_name.c_str(), i);
         EventLoopThread *t = new EventLoopThread(cb, buf);
@@ -30,18 +32,20 @@ void EventLoopThreadPool::start(const ThreadInitCallback &cb /*= nullptr*/) {
         // LOG_INFO << "i = " << i << ", m_loops = " << m_loops[m_loops.size() - 1];
     }
 
-    if(m_numThreads == 0 && cb) {
+    if (m_numThreads == 0 && cb) {
         cb(m_baseLoop);
     }
 }
 
-EventLoop *EventLoopThreadPool::GetNextLoop() {
+EventLoop* EventLoopThreadPool::GetNextLoop() {
+    m_baseLoop->assertInLoopThread();
+    assert(m_start);
     EventLoop *loop = m_baseLoop;
 
-    if(!m_loops.empty()) {
+    if (!m_loops.empty()) {
         loop = m_loops[m_next];
-        m_next++;
-        if(m_next >= (int32_t)m_loops.size()) {
+        ++m_next;
+        if ((size_t)m_next >= m_loops.size()) {
             m_next = 0;
         }
     }
@@ -55,5 +59,3 @@ std::vector<EventLoop *> EventLoopThreadPool::getAllLoops() {
     }
     return m_loops;
 }
-
-}    // namespace shero

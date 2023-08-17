@@ -14,7 +14,7 @@ FunctionServlet::~FunctionServlet() {
     m_cb = nullptr;
 }
 
-void FunctionServlet::handle(HttpRequest::ptr req, HttpResponse::ptr res) {
+void FunctionServlet::handle(const HttpRequest& req, HttpResponse* res) {
     m_cb(req, res);
 }
 
@@ -26,7 +26,7 @@ NotFoundServlet::NotFoundServlet()
 NotFoundServlet::~NotFoundServlet() {
 }
 
-void NotFoundServlet::handle(HttpRequest::ptr req, HttpResponse::ptr res) {
+void NotFoundServlet::handle(const HttpRequest& req, HttpResponse* res) {
     static const std::string &RES_BODY = 
         "<html>"
             "<head>"
@@ -39,6 +39,7 @@ void NotFoundServlet::handle(HttpRequest::ptr req, HttpResponse::ptr res) {
         "</html>";
 
     res->setStatus(HttpStatus::NOT_FOUND);
+    res->setReason(HttpStatusToString(HttpStatus::NOT_FOUND));
     res->setHeader("Server", "shero/1.0.0");
     res->setHeader("Content-Type", "text/html;charset=utf-8");
     res->setBody(RES_BODY);

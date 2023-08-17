@@ -52,7 +52,7 @@ friend class TimerEvent;
 public:
     typedef std::shared_ptr<Timer> ptr;
     typedef RWMutex RWMutexType;
-    Timer(EventLoop *loop = nullptr);
+    Timer(EventLoop *loop);
     ~Timer();
 
     void addTimer(TimerEvent::ptr timer, bool reset = true);

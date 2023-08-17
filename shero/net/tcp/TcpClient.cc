@@ -96,7 +96,7 @@ void TcpClient::newConnection(int32_t sockfd) {
     std::string connName = m_nameArg + buf;
 
     Address addr = *peerAddr;
-    TcpConnectionPtr conn(new TcpConnection(this, sockfd, m_loop, connName, addr));
+    TcpConnectionPtr conn(new TcpConnection(sockfd, m_loop, connName, addr));
     conn->setConnectionCallback(m_connectionCallback);
     conn->setMessageCallback(m_messageCallback);
     conn->setWriteCompleteCallback(m_writeCompleteCallback);
@@ -108,7 +108,7 @@ void TcpClient::newConnection(int32_t sockfd) {
         m_conn = conn;
     }
 
-    conn->ClientconnectEstablished();
+    conn->connectEstablished();
 }
 
 void TcpClient::removeConnection(const TcpConnectionPtr &conn) {

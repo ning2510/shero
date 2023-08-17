@@ -1,10 +1,9 @@
 #include "shero/base/Log.h"
 #include "shero/base/Util.h"
 #include "shero/base/Mutex.h"
-#include "shero/base/Buffer.h"
+#include "shero/net/Buffer.h"
 #include "shero/net/Address.h"
 #include "shero/net/EventLoop.h"
-#include "shero/coroutine/Hook.h"
 #include "shero/net/tcp/TcpClient.h"
 #include "shero/net/EventLoopThread.h"
 
@@ -78,7 +77,6 @@ private:
 };
 
 int main() {
-    set_hook_enable(false);
     std::cout << "Client tid = " << GetThreadId() << std::endl;
 
     EventLoopThread loopThread;

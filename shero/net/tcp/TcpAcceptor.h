@@ -2,9 +2,8 @@
 #define __SHERO_TCPACCEPTOR_H
 
 #include "shero/net/Socket.h"
-#include "shero/net/Address.h"
 #include "shero/net/Channel.h"
-#include "shero/coroutine/Coroutine.h"
+#include "shero/net/Address.h"
 
 #include <memory>
 #include <functional>
@@ -12,8 +11,9 @@
 namespace shero {
 
 class EventLoop;
+class Address;
 
-class TcpAcceptor {
+class TcpAcceptor : public Noncopyable {
 public:
     typedef std::shared_ptr<TcpAcceptor> ptr;
     typedef std::function<void(int32_t connfd, Address addr)> NewConnectionCallback;
@@ -22,32 +22,31 @@ public:
     ~TcpAcceptor();
 
     void listen();
-
+  
     void setNewConnectionCallback(const NewConnectionCallback &cb) {
-        m_newConnectionCallback = std::move(cb);
+        m_newConnectionCallback = cb;
     }
 
+    bool listening() const { return m_listenning; }
     int32_t getFd() const { return m_sock->getFd(); }
     Address getLocalAddr() const { return m_localAddr; }
     Address getPeerAddr() const { return m_peerAddr; }
 
-    Coroutine *getAcceptCor() const { return m_acceptCor.get(); }
+private:
+    void handleRead();
 
 private:
-    void MainLoopFunc();
-
-private:
-    bool m_stop;
+    bool m_listenning;
+    EventLoop *m_loop;
     Socket::ptr m_sock;
 
     Address m_localAddr;
     Address m_peerAddr;
-    Coroutine::ptr m_acceptCor;
 
-    Channel::ptr m_acceptChannel;
+    Channel m_acceptChannel;
     NewConnectionCallback m_newConnectionCallback;
 };
 
-}   // namespace shero
+}  // namespace shero
 
 #endif

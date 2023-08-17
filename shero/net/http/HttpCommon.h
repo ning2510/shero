@@ -13,7 +13,6 @@ struct CaseInsensitiveLess {
     bool operator()(const std::string &l, const std::string &r) const;
 };
 
-
 class HttpRequest {
 public:
     typedef std::shared_ptr<HttpRequest> ptr;
@@ -65,6 +64,19 @@ public:
     std::ostream &dump(std::ostream &os) const;
     std::string toString() const;
 
+    void swap(HttpRequest &other) {
+        std::swap(m_method, other.m_method);
+        std::swap(m_version, other.m_version);
+        m_path.swap(other.m_path);
+        m_query.swap(other.m_query);
+        m_fragment.swap(other.m_fragment);
+        m_body.swap(other.m_body);
+        std::swap(m_close, other.m_close);
+        std::swap(m_websocket, other.m_websocket);
+        m_headers.swap(other.m_headers);
+        m_params.swap(other.m_params);
+    }
+
 private:
     HttpMethod m_method;
     uint8_t m_version;
@@ -113,6 +125,16 @@ public:
 
     std::ostream &dump(std::ostream &os) const;
     std::string toString() const;
+
+    void swap(HttpResponse &other) {
+        std::swap(m_status, other.m_status);
+        std::swap(m_version, other.m_version);
+        m_body.swap(other.m_body);
+        m_reason.swap(other.m_reason);
+        std::swap(m_close, other.m_close);
+        std::swap(m_websocket, other.m_websocket);
+        m_headers.swap(other.m_headers);
+    }
 
 private:
     HttpStatus m_status;

@@ -1,10 +1,7 @@
 #ifndef __SHERO_CHANNEL_H
 #define __SHERO_CHANNEL_H
 
-#include "shero/base/Mutex.h"
-#include "shero/base/Singleton.h"
 #include "shero/base/Noncopyable.h"
-#include "shero/coroutine/Coroutine.h"
 
 #include <vector>
 #include <memory>
@@ -17,7 +14,7 @@ class EventLoop;
 
 enum IOEvent {
     NONE = 0,
-    READ = EPOLLIN,
+    READ = EPOLLIN | EPOLLPRI,
     WRITE = EPOLLOUT,
     ERROR = EPOLLERR,
     HUP = EPOLLHUP
@@ -32,7 +29,7 @@ enum ChannelStatus {
 class Channel : public Noncopyable {
 public:
     typedef std::shared_ptr<Channel> ptr;
-    Channel(EventLoop *loop, int32_t fd);
+    Channel(EventLoop* loop, int32_t fd);
     ~Channel();
 
     void addListenEvents(IOEvent event);
@@ -46,12 +43,12 @@ public:
 
     int32_t getFd() const { return m_fd; }
     int32_t getEvent() const { return m_event; }
-    EventLoop *getEventLoop() const { return m_loop; }
+    EventLoop *getEventLoop() { return m_loop; }
 
     int32_t getRevents() const { return m_revents; }
-    void setRevents(int32_t revents) { m_revents = revents; }
+    void setRevents(int revt) { m_revents = revt; }
 
-    ChannelStatus getStatus() const { return m_status; }
+    ChannelStatus getStatus() { return m_status; }
     void setStatus(ChannelStatus status) { m_status = status; }
 
     void setReadCallback(std::function<void()> cb) { m_readCallback = std::move(cb); }
@@ -63,10 +60,6 @@ public:
     bool isWriting() { return m_event & IOEvent::WRITE; }
     bool isNoneEvent() { return m_event == IOEvent::NONE; }
 
-    void setCoroutine(Coroutine *cor) { m_cor = cor; }
-    Coroutine *getCoroutine() const { return m_cor; }
-    void clearCoroutine() { m_cor = nullptr; }
-
 private:
     void updateToLoop();
     void handleEventWithGuard();
@@ -75,8 +68,7 @@ private:
     int32_t m_fd;
     int32_t m_event;
     int32_t m_revents;
-    EventLoop *m_loop;
-    Coroutine *m_cor;
+    EventLoop* m_loop;
 
     ChannelStatus m_status;
 
@@ -89,22 +81,6 @@ private:
     std::function<void()> m_closeCallback;
 };
 
-class ChannelManager {
-public:
-    typedef std::shared_ptr<ChannelManager> ptr;
-    typedef Mutex MutexType;
-    ChannelManager(int32_t size = 512);
-
-    Channel::ptr getChannel(int32_t fd, EventLoop *loop = nullptr);
-
-private:
-    MutexType m_mutex;
-    int32_t m_size;
-    std::vector<Channel::ptr> m_channels;
-};
-
-typedef Singleton<ChannelManager> ChannelMgr;
-
-}   // namespace shero
+}  // namespace shero
 
 #endif

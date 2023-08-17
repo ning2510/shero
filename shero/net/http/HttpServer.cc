@@ -1,111 +1,69 @@
-#include "shero/base/Log.h"
-#include "shero/net/http/HttpServer.h"
+#include "shero/net/http/HttpStatus.h"
 #include "shero/net/http/HttpParser.h"
+#include "shero/net/http/HttpServer.h"
 
 #include <sstream>
-#include <iostream>
 
 namespace shero {
 namespace http {
 
-HttpServer::HttpServer(EventLoop *loop, const Address &addr, 
-        const std::string &name, bool keepAlive /*= false*/)
-        : m_keepAlive(keepAlive),
-          m_server(loop, addr, name),
-          m_dispatch(new HttpDispatch) {
-
-    // m_server.setThreadNums(1);
-    m_server.setConnectionCallback(
-        std::bind(&HttpServer::onConnection, this, std::placeholders::_1));
-    m_server.setMessageCallback(
-        std::bind(&HttpServer::onMessage, this, std::placeholders::_1, std::placeholders::_2));
+void defaultHttpCallback(const HttpRequest &req, HttpResponse *res) {
+    res->setStatus(HttpStatus::NOT_FOUND);
+    res->setReason(HttpStatusToString(HttpStatus::NOT_FOUND));
+    res->setClose(true);
 }
 
-HttpServer::~HttpServer() {
+HttpServer::HttpServer(EventLoop *loop, 
+    const Address &listenAddr, const std::string &name) 
+    : m_server(loop, listenAddr, name),
+      m_httpCallback(defaultHttpCallback),
+      m_dispatch(new HttpDispatch()) {
+
+    m_server.setConnectionCallback(std::bind(
+        &HttpServer::onConnection, this, std::placeholders::_1));
+    m_server.setMessageCallback(std::bind(
+        &HttpServer::onMessage, this, std::placeholders::_1, std::placeholders::_2));
 }
 
 void HttpServer::start() {
     m_server.start();
 }
 
-void HttpServer::stop() {
-    m_loop->quit();
-}
-
-void HttpServer::setThreadNums(int32_t nums) {
-    m_server.setThreadNums(nums);
-}
-
 void HttpServer::onConnection(const TcpConnectionPtr &conn) {
-    if(conn->isConnected()) {
-        LOG_INFO << "[HttpServer] Connection UP : " << conn->getPeerAddr().toIpPort();
-    } else {
-        LOG_INFO << "[HttpServer] Connection DOWN : " << conn->getPeerAddr().toIpPort();    
+  if(conn->isConnected()) {
+        conn->setContext(HttpParser());
     }
 }
 
 void HttpServer::onMessage(const TcpConnectionPtr &conn, Buffer *buf) {
-    // 1. parser http request
-    HttpRequest::ptr req = HttpParserRequest(buf);
-    if(!req) {
-        return ;
-    }
- 
-    HttpResponse::ptr res(
-        new HttpResponse(req->getVersion(), req->isClose() || !m_keepAlive));
-    
-    // 2. get matched servlet
-    m_dispatch->handle(req, res);
+    HttpParser* parser = boost::any_cast<HttpParser>(conn->getMutableContext());
 
-    // 3. send http response
-    std::stringstream ss;
-    ss << *res;
-    conn->send(ss.str());
-
-    if(req->isClose()) {
+    if(!parser->parserHttpRequest(buf)) {
+        conn->send("HTTP/1.1 400 Bad Request\r\n\r\n");
         conn->shutdown();
     }
+
+    if(parser->isFinished()) {
+        onRequest(conn, parser->getRequest());
+        parser->reset();
+    }
 }
 
-HttpRequest::ptr HttpServer::HttpParserRequest(std::string msg) {
-    size_t len = msg.size();
-    HttpRequestParser::ptr reqParser(new HttpRequestParser);
-    size_t nparser = reqParser->execute((char *)msg.c_str(), len);
-    if(reqParser->hasError()) {
-        LOG_ERROR << "[HttpServer] Parsing http request message error";
-        return nullptr;
+void HttpServer::onRequest(const TcpConnectionPtr &conn, const HttpRequest &req) {
+    const std::string connection = req.getHeader("Connection");
+    bool close = (connection == "close") || 
+            (req.getVersion() == 0x10 && connection != "Keep-Alive");
+
+    HttpResponse res(req.getVersion(), close);
+    m_dispatch->handle(req, &res);
+
+    std::stringstream ss;
+    ss << res;
+    conn->send(ss.str());
+
+    if (res.isClose()) {
+        conn->shutdown();
     }
-
-    if(!reqParser->isFinished()) {
-        LOG_ERROR << "[HttpServer] Parsing not complete, something erorr";
-        return nullptr;
-    }
-
-    uint64_t contentLen = reqParser->getContentLength();
-    if((nparser > len) || (len - nparser != contentLen)) {
-        LOG_ERROR << "[HttpServer] request message body length error";
-        return nullptr;
-    }
-
-    HttpRequest::ptr req = reqParser->getData();
-    if(contentLen > 0) {
-        std::string body;
-        body.resize(contentLen);
-        memcpy(&body[0], &msg[0], len - nparser);   
-        req->setBody(body);
-    }
-
-    std::string keep_alive = req->getHeader("Connection");
-    if(!strcasecmp(keep_alive.c_str(), "keep-alive")) {
-        req->setClose(false);
-    }
-
-    return req;
-}
-
-HttpRequest::ptr HttpServer::HttpParserRequest(Buffer *buf) {
-    std::string msg = buf->retrieveAllAsString();
-    return HttpParserRequest(msg);
 }
 
 }   // namespace http

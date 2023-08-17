@@ -1,4 +1,3 @@
-#include "shero/base/Log.h"
 #include "shero/net/Address.h"
 
 #include <vector>
@@ -56,9 +55,6 @@ Address::ptr Address::LookupAddressByHost(const std::string &host,
     std::vector<Address::ptr> result;
     int32_t error = getaddrinfo(node.c_str(), service, &hints, &results);
     if(error) {
-        LOG_ERROR << "Address::Loopup getaddress(" << host 
-            << ", " << family << ", " << type << ") errnor = " << error
-            << " errstr = " << strerror(error);
         return nullptr;
     }
 

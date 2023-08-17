@@ -18,17 +18,17 @@ public:
         : AbstractServlet(name) {}
     virtual ~HttpServlet() {}
 
-    virtual void handle(HttpRequest::ptr req, HttpResponse::ptr res) = 0;
+    virtual void handle(const HttpRequest& req, HttpResponse* res) = 0;
 };
 
 class FunctionServlet : public HttpServlet {
 public:
-    typedef std::function<void(HttpRequest::ptr req, 
-                    HttpResponse::ptr res)> ServletCallback;
+    typedef std::function<void(const HttpRequest& req, 
+                        HttpResponse* res)> ServletCallback;
     FunctionServlet(const ServletCallback &cb);
     ~FunctionServlet();
 
-    virtual void handle(HttpRequest::ptr req, HttpResponse::ptr res) override;
+    virtual void handle(const HttpRequest& req, HttpResponse* res) override;
 
 private:
     ServletCallback m_cb;
@@ -39,7 +39,7 @@ public:
     NotFoundServlet();
     ~NotFoundServlet();
 
-    virtual void handle(HttpRequest::ptr req, HttpResponse::ptr res) override;
+    virtual void handle(const HttpRequest& req, HttpResponse* res) override;
 };
 
 }   // namespace http

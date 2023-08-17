@@ -1,4 +1,4 @@
-#include "shero/net/http/Http.h"
+#include "shero/net/http/HttpCommon.h"
 
 #include <sstream>
 #include <strings.h>

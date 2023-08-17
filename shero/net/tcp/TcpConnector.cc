@@ -32,6 +32,7 @@ TcpConnector::TcpConnector(EventLoop *loop, const Address &serverAddr, bool canR
       m_timer(new Timer(loop)),
       m_state(Disconnected),
       m_newConnectionCallback() {
+    m_loop->runInLoop(std::bind(&Timer::timerCreated, m_timer.get()));
 }
 
 TcpConnector::~TcpConnector() {
@@ -155,6 +156,7 @@ void TcpConnector::handleWrite() {
             } else {
                 ::close(sockfd);
             }
+            m_loop->runInLoop(std::bind(&Timer::timerDestroyed, m_timer.get()));
         }
     }
 }

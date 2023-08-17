@@ -55,6 +55,9 @@ public:
     Timer(EventLoop *loop);
     ~Timer();
 
+    void timerCreated();
+    void timerDestroyed();
+
     void addTimer(TimerEvent::ptr timer, bool reset = true);
     TimerEvent::ptr addTimer(uint64_t interval, 
         std::function<void()> cb, bool recycle = false);
@@ -67,9 +70,10 @@ public:
     void onTimer();
 
 private:
-    RWMutexType m_mutex;
     int32_t m_fd;
-    Channel *m_channel;
+    EventLoop *m_loop;
+    Channel m_channel;
+    RWMutexType m_mutex;
 
     // 从小到大
     std::set<TimerEvent::ptr, TimerEvent::Comparator> m_timers;

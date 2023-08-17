@@ -4,12 +4,23 @@
 #include "shero/net/EventLoop.h"
 
 #include <vector>
+#include <assert.h>
 #include <unistd.h>
 #include <string.h>
 #include <strings.h>
 #include <sys/timerfd.h>
+#include <iostream>
 
 namespace shero {
+
+int32_t createTimerFd() {
+    int32_t fd = timerfd_create(CLOCK_MONOTONIC, TFD_NONBLOCK | TFD_CLOEXEC);
+    if(fd < 0) {
+        LOG_FATAL << "timerfd_create error, strerror = " << strerror(errno);
+    }
+    LOG_DEBUG << "timerfd_create susscess, fd = " << fd;
+    return fd;
+}
 
 // TimerEvent
 bool TimerEvent::Comparator::operator()(const TimerEvent::ptr &l, const TimerEvent::ptr &r) {
@@ -56,26 +67,27 @@ void TimerEvent::resetArrive() {
 }
 
 // Timer
-Timer::Timer(EventLoop *loop) {
-    m_fd = timerfd_create(CLOCK_MONOTONIC, TFD_NONBLOCK | TFD_CLOEXEC);
-    if(m_fd < 0) {
-        LOG_ERROR << "timerfd_create error, strerror = " << strerror(errno);
-    }
-    LOG_DEBUG << "timerfd_create susscess, fd = " << m_fd;
+Timer::Timer(EventLoop *loop)
+    : m_fd(createTimerFd()),
+      m_loop(loop),
+      m_channel(loop, m_fd) {
 
-    m_channel = new Channel(loop, m_fd);
-    m_channel->addListenEvents(IOEvent::READ);
-    m_channel->setReadCallback(std::bind(&Timer::onTimer, this));
+    m_channel.setReadCallback(std::bind(&Timer::onTimer, this));
 }
 
 Timer::~Timer() {
     LOG_INFO << "~Timer";
-    m_channel->delAllListenEvents();
-    m_channel->removeFromLoop();
-    if(m_channel) {
-        delete m_channel;
-        m_channel = nullptr;
-    }
+}
+
+void Timer::timerCreated() {
+    m_channel.getEventLoop()->assertInLoopThread();
+    m_channel.addListenEvents(IOEvent::READ);
+}
+
+void Timer::timerDestroyed() {
+    m_channel.getEventLoop()->assertInLoopThread();
+    m_channel.delAllListenEvents();
+    m_channel.removeFromLoop();
     close(m_fd);
 }
 

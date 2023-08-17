@@ -23,13 +23,13 @@ void EventLoopThreadPool::start(const ThreadInitCallback& cb) {
     m_baseLoop->assertInLoopThread();
     m_start = true;
 
-    for (int i = 0; i < m_numThreads; ++i) {
+    for (int32_t i = 0; i < m_numThreads; ++i) {
         char buf[m_name.size() + 32];
         snprintf(buf, sizeof(buf), "%s%d", m_name.c_str(), i);
         EventLoopThread *t = new EventLoopThread(cb, buf);
         m_threads.push_back(std::unique_ptr<EventLoopThread>(t));
         m_loops.push_back(t->startLoop());
-        // LOG_INFO << "i = " << i << ", m_loops = " << m_loops[m_loops.size() - 1];
+        // LOG_DEBUG << "i = " << i << ", m_loops = " << m_loops[m_loops.size() - 1];
     }
 
     if (m_numThreads == 0 && cb) {

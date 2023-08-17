@@ -1,4 +1,4 @@
-// #include "shero/base/Log.h"
+#include "shero/base/Log.h"
 #include "shero/net/Channel.h"
 #include "shero/net/EventLoop.h"
 #include "shero/net/EPollPoller.h"
@@ -14,7 +14,7 @@ EPollPoller::EPollPoller(EventLoop *loop)
       m_epfd(epoll_create1(EPOLL_CLOEXEC)),
       m_events(m_epollEventSize) {
     if(m_epfd < 0) {
-        // LOG_ERROR << "epoll_create1() error, strerror = " << strerror(errno);
+        LOG_ERROR << "epoll_create1() error, strerror = " << strerror(errno);
     }
 }
 
@@ -27,16 +27,16 @@ void EPollPoller::poll(int32_t timeoutMs, ChannelList *activeChannels) {
                 static_cast<int32_t>(m_events.size()), timeoutMs);
     
     if(numEvents > 0) {
-        // LOG_DEBUG << numEvents << " events happened";
+        LOG_DEBUG << numEvents << " events happened";
         
         fillActiveChannels(numEvents, activeChannels);
         if(numEvents == static_cast<int32_t>(sizeof(m_events))) {
             m_events.resize(m_events.size() * 2);
         }
     } else if(numEvents == 0) {
-        // LOG_WARN << "epoll_wait() timeout";
+        LOG_WARN << "epoll_wait() timeout";
     } else {
-        // LOG_ERROR << "epoll_wait() error, strerror = " << strerror(errno);
+        LOG_ERROR << "epoll_wait() error, strerror = " << strerror(errno);
     }
 }
 
@@ -95,8 +95,8 @@ void EPollPoller::update(int32_t opt, Channel *channel) {
 
     int rt = epoll_ctl(m_epfd, opt, channel->getFd(), &ev);
     if(rt < 0) {
-        // LOG_ERROR << "epoll_ctl error, strerror = " << strerror(errno)
-        //     << " fd = " << channel->getFd();
+        LOG_ERROR << "epoll_ctl error, strerror = " << strerror(errno)
+            << " fd = " << channel->getFd();
     }
 }
 
@@ -109,8 +109,8 @@ void EPollPoller::fillActiveChannels(int32_t numEvents, ChannelList *activeChann
         channel->setRevents(ev.events);
         activeChannels->push_back(channel);
 
-        // LOG_DEBUG << "fd = " << channel->getFd() << " events = " << ev.events
-        //     << " channel = " << channel;
+        LOG_DEBUG << "fd = " << channel->getFd() << " events = " << ev.events
+            << " channel = " << channel;
     }
 }
 

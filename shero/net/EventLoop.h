@@ -22,9 +22,9 @@ public:
     EventLoop();
     ~EventLoop();  
 
-    void updateChannel(Channel* channel);
-    void removeChannel(Channel* channel);
-    bool hasChannel(Channel* channel);
+    void updateChannel(Channel *channel);
+    void removeChannel(Channel *channel);
+    bool hasChannel(Channel *channel);
 
     void loop();
     void quit();

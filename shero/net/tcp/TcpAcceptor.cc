@@ -1,4 +1,4 @@
-// #include "shero/base/Log.h"
+#include "shero/base/Log.h"
 #include "shero/net/EventLoop.h"
 #include "shero/net/tcp/TcpAcceptor.h"
 
@@ -7,11 +7,11 @@
 namespace shero {
 
 TcpAcceptor::TcpAcceptor(EventLoop* loop, const Address& localAddr)
-  : m_listenning(false),
-    m_loop(loop),
-    m_sock(new Socket(AF_INET, SOCK_STREAM | SOCK_NONBLOCK | SOCK_CLOEXEC, IPPROTO_TCP, true)),
-    m_localAddr(localAddr),
-    m_acceptChannel(loop, m_sock->getFd()) {
+    : m_listenning(false),
+      m_loop(loop),
+      m_sock(new Socket(AF_INET, SOCK_STREAM | SOCK_NONBLOCK | SOCK_CLOEXEC, IPPROTO_TCP, true)),
+      m_localAddr(localAddr),
+      m_acceptChannel(loop, m_sock->getFd()) {
 
     m_sock->bind(&m_localAddr);
     m_acceptChannel.setReadCallback(std::bind(&TcpAcceptor::handleRead, this));
@@ -32,9 +32,9 @@ void TcpAcceptor::handleRead() {
             close(connfd);
         }
     } else {
-        // LOG_ERROR << "accept err : " << errno;
+        LOG_ERROR << "accept err : " << errno;
         if(errno == EMFILE) {
-            // LOG_ERROR << "sockfd reached limit";
+            LOG_ERROR << "sockfd reached limit";
         }
     }
 }
@@ -44,7 +44,7 @@ void TcpAcceptor::listen() {
     m_listenning = true;
     bool rt = m_sock->listen();
     if(!rt) {
-        // LOG_FATAL << "TcpAcceptor listen error";
+        LOG_FATAL << "TcpAcceptor listen error";
     }
     m_acceptChannel.addListenEvents(IOEvent::READ);
 }

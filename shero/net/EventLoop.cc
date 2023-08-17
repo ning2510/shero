@@ -1,7 +1,8 @@
-#include "shero/net/EventLoop.h"
+#include "shero/base/Log.h"
 #include "shero/base/Mutex.h"
-#include "shero/net/Channel.h"
 #include "shero/net/Poller.h"
+#include "shero/net/Channel.h"
+#include "shero/net/EventLoop.h"
 
 #include <assert.h>
 #include <string.h>
@@ -18,9 +19,9 @@ const int EventLoop::m_pollTimeMs = 100000;
 int32_t createEventFd() {
     int evtfd = ::eventfd(0, EFD_NONBLOCK | EFD_CLOEXEC);
     if(evtfd < 0) {
-        // LOG_FATAL << "eventfd error : " << errno;
+        LOG_FATAL << "eventfd error : " << errno;
     } else {
-        // LOG_INFO << "eventFd() success, event fd = " << evtfd;
+        LOG_INFO << "eventFd() success, event fd = " << evtfd;
     }
     return evtfd;
 }
@@ -36,8 +37,8 @@ EventLoop::EventLoop()
       m_currentActiveChannel(nullptr) {
 
     if (t_eventLoop) {
-        // LOG_FATAL << "Another EventLoop " << t_eventLoop
-        //           << " exists in this thread " << threadId_;
+        LOG_FATAL << "Another EventLoop " << t_eventLoop
+                  << " exists in this thread " << m_tid;
     } else {
         t_eventLoop = this;
     }
@@ -54,13 +55,13 @@ EventLoop::~EventLoop() {
     t_eventLoop = nullptr;
 }
 
-void EventLoop::updateChannel(Channel* channel) {
+void EventLoop::updateChannel(Channel *channel) {
     assert(channel->getEventLoop() == this);
     assertInLoopThread();
     m_poller->updateChannel(channel);
 }
 
-void EventLoop::removeChannel(Channel* channel) {
+void EventLoop::removeChannel(Channel *channel) {
     assert(channel->getEventLoop() == this);
     assertInLoopThread();
     if (m_eventHandling) {
@@ -82,7 +83,7 @@ void EventLoop::loop() {
     assert(!m_looping);
     m_looping = true;
 
-    // LOG_DEBUG << "EventLoop [" << this << "] start loop";
+    LOG_DEBUG << "EventLoop [" << this << "] start loop";
 
     while (m_looping) {
         m_activeChannels.clear();
@@ -101,8 +102,8 @@ void EventLoop::loop() {
 }
 
 void EventLoop::abortNotInLoopThread() {
-    // LOG_FATAL << "EventLoop::abortNotInLoopThread - EventLoop[" << this 
-    //     << "], its thread id = " << m_tid << ", current thread id = " << GetThreadId();
+    LOG_FATAL << "EventLoop::abortNotInLoopThread - EventLoop[" << this 
+        << "], its thread id = " << m_tid << ", current thread id = " << GetThreadId();
 }
 
 void EventLoop::quit() {
@@ -159,17 +160,17 @@ void EventLoop::doPendingFunctors() {
 void EventLoop::wakeup() {
     uint64_t one = 1;
     if(write(m_wakeupFd, &one, sizeof(one)) != sizeof(one)) {
-        // LOG_ERROR << "EventLoop::wakeup() error, strerror = " << strerror(errno);
+        LOG_ERROR << "EventLoop::wakeup() error, strerror = " << strerror(errno);
     }
-    // LOG_INFO << "EventLoop::wakeup() write, event loop = " << this;
+    LOG_INFO << "EventLoop::wakeup() write, event loop = " << this;
 }
 
 void EventLoop::handleRead() {
     uint64_t one;
     if(read(m_wakeupFd, &one, sizeof(one)) != sizeof(one)) {
-        // LOG_ERROR << "EventLoop::handleRead() error, strerror = " << strerror(errno);
+        LOG_ERROR << "EventLoop::handleRead() error, strerror = " << strerror(errno);
     }
-    // LOG_INFO << "EventLoop::wakeup() read, event loop = " << this;
+    LOG_INFO << "EventLoop::wakeup() read, event loop = " << this;
 }
 
 

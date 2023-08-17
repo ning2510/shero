@@ -1,4 +1,4 @@
-// #include "shero/base/Log.h"
+#include "shero/base/Log.h"
 #include "shero/net/Buffer.h"
 
 #include <unistd.h>
@@ -42,12 +42,12 @@ size_t Buffer::writeFd(int32_t fd, int32_t *saveErrno) {
     return rt;
 }
 
-    // LOG_ERROR << "Buffer::read" #type "() error, the number of "
-    //     "remaining readable bytes is less than " << sizeof(type);
-
+    
 // 固定长度 read
 #define XX(type) \
     if(readableBytes() < sizeof(type)) { \
+        LOG_ERROR << "Buffer::read" #type "() error, the number of " \
+        "remaining readable bytes is less than " << sizeof(type); \
         return 0; \
     } \
     type nw; \

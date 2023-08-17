@@ -29,7 +29,7 @@ enum ChannelStatus {
 class Channel : public Noncopyable {
 public:
     typedef std::shared_ptr<Channel> ptr;
-    Channel(EventLoop* loop, int32_t fd);
+    Channel(EventLoop *loop, int32_t fd);
     ~Channel();
 
     void addListenEvents(IOEvent event);
@@ -43,12 +43,12 @@ public:
 
     int32_t getFd() const { return m_fd; }
     int32_t getEvent() const { return m_event; }
-    EventLoop *getEventLoop() { return m_loop; }
+    EventLoop *getEventLoop() const { return m_loop; }
 
     int32_t getRevents() const { return m_revents; }
-    void setRevents(int revt) { m_revents = revt; }
+    void setRevents(int32_t revt) { m_revents = revt; }
 
-    ChannelStatus getStatus() { return m_status; }
+    ChannelStatus getStatus() const { return m_status; }
     void setStatus(ChannelStatus status) { m_status = status; }
 
     void setReadCallback(std::function<void()> cb) { m_readCallback = std::move(cb); }
@@ -68,7 +68,7 @@ private:
     int32_t m_fd;
     int32_t m_event;
     int32_t m_revents;
-    EventLoop* m_loop;
+    EventLoop *m_loop;
 
     ChannelStatus m_status;
 

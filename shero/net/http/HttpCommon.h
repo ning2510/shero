@@ -1,5 +1,5 @@
-#ifndef __SHERO_HTTP_H
-#define __SHERO_HTTP_H
+#ifndef __SHERO_HTTPCOMMON_H
+#define __SHERO_HTTPCOMMON_H
 
 #include "shero/net/http/HttpStatus.h"
 

@@ -1,4 +1,4 @@
-// #include "shero/base/Log.h"
+#include "shero/base/Log.h"
 #include "shero/net/Channel.h"
 #include "shero/net/EventLoop.h"
 
@@ -6,8 +6,6 @@
 #include <assert.h>
 #include <string.h>
 #include <unistd.h>
-
-#include <poll.h>
 
 namespace shero {
 
@@ -19,7 +17,7 @@ Channel::Channel(EventLoop *loop, int32_t fd)
       m_loop(loop),
       m_status(ChannelStatus::NEW),
       m_tied(false) {
-    // LOG_INFO << "new Channel created, loop = " << loop << ", fd = " << fd;
+    LOG_INFO << "new Channel created, loop = " << loop << ", fd = " << fd;
 }
 
 Channel::~Channel() {
@@ -31,7 +29,7 @@ void Channel::addListenEvents(IOEvent event) {
     } else if(event == IOEvent::WRITE) {
         m_event |= IOEvent::WRITE;
     } else {
-        // LOG_WARN << "Channel::addListenEvents() IOEvent is invalid";
+        LOG_WARN << "Channel::addListenEvents() IOEvent is invalid";
         return ;
     }
     updateToLoop();
@@ -43,15 +41,15 @@ void Channel::delListenEvents(IOEvent event) {
     } else if(event == IOEvent::WRITE) {
         m_event &= ~IOEvent::WRITE;
     } else {
-        // LOG_WARN << "Channel::delListenEvents() IOEvent is invalid";
+        LOG_WARN << "Channel::delListenEvents() IOEvent is invalid";
         return ;
     }
     updateToLoop();
 }
 
 void Channel::delAllListenEvents() {
-  m_event = IOEvent::NONE; 
-  updateToLoop();
+    m_event = IOEvent::NONE; 
+    updateToLoop();
 }
 
 void Channel::handleEvent() {
@@ -81,10 +79,10 @@ void Channel::setNonBlock() {
     fcntl(m_fd, F_SETFL, flag | O_NONBLOCK);
     flag = fcntl(m_fd, F_GETFL, 0);
     if(flag & O_NONBLOCK) {
-        // LOG_INFO << "set nonblock success, fd = " << m_fd;
+        LOG_INFO << "set nonblock success, fd = " << m_fd;
     } else {
-        // LOG_ERROR << "set nonblock failed, fd = " << m_fd
-        //     << " strerror = " << strerror(errno);
+        LOG_ERROR << "set nonblock failed, fd = " << m_fd
+            << " strerror = " << strerror(errno);
     }
 }
 

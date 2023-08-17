@@ -1,5 +1,5 @@
-#include "shero/net/EventLoopThread.h"
 #include "shero/net/EventLoop.h"
+#include "shero/net/EventLoopThread.h"
 
 #include <assert.h>
 
@@ -17,7 +17,7 @@ EventLoopThread::EventLoopThread(
 }
 
 EventLoopThread::~EventLoopThread() {
-    // LOG_INFO << "~EventLoopThread";
+    // LOG_DEBUG << "~EventLoopThread";
     if(m_loop != nullptr) {
         m_loop->quit();
         m_thread.join();
@@ -46,13 +46,13 @@ void EventLoopThread::threadFunc() {
     }
 
     {
-        Mutex::Lock lock(m_mutex);
+        MutexType::Lock lock(m_mutex);
         m_loop = &loop;
         pthread_cond_signal(&m_cond);
     }
 
   loop.loop();
-  Mutex::Lock lock(m_mutex);
+  MutexType::Lock lock(m_mutex);
   m_loop = nullptr;
 }
 

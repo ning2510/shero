@@ -18,7 +18,7 @@ void Exit(int sig) {
 
 struct _SignalIniter {
     _SignalIniter() {
-        // signal(SIGINT, Exit);
+        signal(SIGINT, Exit);
     }
 };
 
@@ -172,7 +172,7 @@ void AsyncLogger::join() {
     pthread_join(m_thread, nullptr);
 }
 
-void AsyncLogger::push(std::vector<std::string> buffer) {
+void AsyncLogger::push(std::vector<std::string> &buffer) {
     MutexType::Lock lock(m_mutex);
     m_queue.push(buffer);
     lock.unlock();

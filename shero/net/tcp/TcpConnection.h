@@ -23,7 +23,7 @@ public:
             const std::string &name, Address peerAddr);
     ~TcpConnection();
 
-    void send(const std::string& data);
+    void send(const std::string &data);
     void shutdown();
     void forceClose();
 
@@ -47,14 +47,14 @@ public:
 
 
     // DELETE
-  void setContext(const boost::any& context)
-  { context_ = context; }
+    void setContext(const boost::any &context)
+    { context_ = context; }
 
-  const boost::any& getContext() const
-  { return context_; }
+    const boost::any &getContext() const
+    { return context_; }
 
-  boost::any* getMutableContext()
-  { return &context_; }
+    boost::any *getMutableContext()
+    { return &context_; }
 
 private:
     enum ConnectionState {
@@ -80,7 +80,7 @@ private:
 
 private:
     bool m_stop;
-    int m_connfd;
+    int32_t m_connfd;
     std::string m_name;
     std::atomic_int m_state;
 
@@ -88,7 +88,7 @@ private:
 
     Buffer m_input;
     Buffer m_output;
-    const Address m_peerAddr;
+    Address m_peerAddr;
     EventLoop* m_subLoop;
 
     ConnectionCallback m_connectionCallback;

@@ -1,1 +1,0 @@
-valgrind --track-origins=yes --leak-check=full --show-leak-kinds=all -v ./test_mutex_thread

@@ -133,7 +133,7 @@ public:
 
     void stop();
     void join();
-    void push(std::vector<std::string> buffer);
+    void push(std::vector<std::string> &buffer);
 
     static void *mainLoop(void *arg);
 
@@ -202,7 +202,13 @@ public:
     void reset(LogMode::Mode mode = LogMode::Mode::FILE, const char *filePath = "./", 
             int32_t maxSize = 5 * 1024 * 1024, int64_t interval = 500, 
             LogLevel::Level level = LogLevel::Level::DEBUG) {
+#ifdef BENCH_MARK
+        std::cout << "Bench mark\n";
+        g_logger.reset(new Logger(mode, filePath, maxSize, interval, LogLevel::Level::ERROR));
+#else
+        std::cout << "not Bench mark\n";
         g_logger.reset(new Logger(mode, filePath, maxSize, interval, level));
+#endif
     }
 
     Logger *getLogger() const { return g_logger.get(); }

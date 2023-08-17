@@ -1,4 +1,4 @@
-// #include "shero/base/Log.h"
+#include "shero/base/Log.h"
 #include "shero/net/EventLoop.h"
 #include "shero/net/tcp/TcpServer.h"
 
@@ -11,7 +11,7 @@ namespace shero {
 
 static EventLoop *CheckLoopIsNull(EventLoop *loop) {
     if(loop == nullptr) {
-        // LOG_FATAL << "main loop is nullptr";
+        LOG_FATAL << "main loop is nullptr";
     }
     return loop;
 }
@@ -35,7 +35,7 @@ TcpServer::TcpServer(EventLoop *mainLoop,
 
 TcpServer::~TcpServer() {
     m_mainLoop->assertInLoopThread();
-    // LOG_INFO << "~TcpServer";
+    LOG_INFO << "~TcpServer";
     for(auto &it : m_connections) {
         TcpConnectionPtr conn(it.second);
         it.second.reset();
@@ -64,8 +64,8 @@ void TcpServer::newConnection(int32_t connfd, const Address& peerAddr) {
     m_nextConnId++;
 
     std::string connName = m_nameArg + buf;
-    // LOG_INFO << "TcpServer::newConnection [" << connName 
-    //     << "] created"<< ", current loop = " << subLoop << ", connfd = " << connfd;
+    LOG_INFO << "TcpServer::newConnection [" << connName 
+        << "] created"<< ", current loop = " << subLoop << ", connfd = " << connfd;
     
     TcpConnectionPtr conn(new TcpConnection(connfd, subLoop, connName, peerAddr));
     m_connections[connfd] = conn;
@@ -86,8 +86,8 @@ void TcpServer::removeConnection(const TcpConnectionPtr& conn) {
 
 void TcpServer::removeConnectionInLoop(const TcpConnectionPtr& conn) {
     m_mainLoop->assertInLoopThread();
-    // LOG_INFO << "TcpServer::removeConnectionInLoop [" << conn->getName() 
-    //     << "] fd = " << conn->getConnfd();
+    LOG_INFO << "TcpServer::removeConnectionInLoop [" << conn->getName() 
+        << "] fd = " << conn->getConnfd();
 
     m_connections.erase(conn->getConnfd());
     EventLoop* ioLoop = conn->getSubLoop();

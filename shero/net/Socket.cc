@@ -1,4 +1,4 @@
-// #include "shero/base/Log.h"
+#include "shero/base/Log.h"
 #include "shero/net/Socket.h"
 
 #include <unistd.h>
@@ -61,9 +61,9 @@ bool Socket::init() {
         return true;
     }
     m_fd = socket(m_domain, m_type, m_protocol);
-    // LOG_DEBUG << "Socket::init() socket fd = " << m_fd;
+    LOG_DEBUG << "Socket::init() socket fd = " << m_fd;
     if(m_fd < 0) {
-        // LOG_ERROR << "::socket() error, strerror = " << strerror(errno);
+        LOG_ERROR << "::socket() error, strerror = " << strerror(errno);
         return false;
     }
     setReuseAddr(true);
@@ -76,13 +76,13 @@ bool Socket::init() {
 
 bool Socket::bind(Address *localAddr) {
     if(isInvalid()) {
-        // LOG_ERROR << "Socket::bind() invalid socket";
+        LOG_ERROR << "Socket::bind() invalid socket";
         return false;
     }
 
     int32_t rt = ::bind(m_fd, localAddr->getAddr(), localAddr->getAddrLen());
     if(rt < 0) {
-        // LOG_ERROR << "::bind() error, strerror = " << strerror(errno);
+        LOG_ERROR << "::bind() error, strerror = " << strerror(errno);
     }
     return rt >= 0;
 }
@@ -93,20 +93,20 @@ bool Socket::bind(Address::ptr localAddr) {
 
 bool Socket::listen(int32_t backlog /*= SOMAXCONN*/) {
     if(isInvalid()) {
-        // LOG_ERROR << "Socket::listen() invalid socket";
+        LOG_ERROR << "Socket::listen() invalid socket";
         return false;
     }
 
     int32_t rt = ::listen(m_fd, backlog);
     if(rt < 0) {
-        // LOG_ERROR << "::listen() error, strerror = " << strerror(errno);
+        LOG_ERROR << "::listen() error, strerror = " << strerror(errno);
     }
     return rt >= 0;
 }
 
 int32_t Socket::accept(Address *peerAddr, bool setNonBlock /*= false*/) {
     if(isInvalid()) {
-        // LOG_ERROR << "Socket::accept() invalid socket";
+        LOG_ERROR << "Socket::accept() invalid socket";
         return false;
     }
 
@@ -122,8 +122,8 @@ int32_t Socket::accept(Address *peerAddr, bool setNonBlock /*= false*/) {
         connfd = ::accept(m_fd, (sockaddr *)&addr, &len);
     }
     if(connfd < 0) {
-        // LOG_ERROR << "::accept() error, errno = "
-        //      << errno << " strerror = " << strerror(errno);
+        LOG_ERROR << "::accept() error, errno = "
+             << errno << " strerror = " << strerror(errno);
     } else {
         peerAddr->setAddr(addr);
     }
@@ -132,13 +132,13 @@ int32_t Socket::accept(Address *peerAddr, bool setNonBlock /*= false*/) {
 
 bool Socket::connect(Address::ptr peerAddr) {
     if(isInvalid()) {
-        // LOG_ERROR << "Socket::connect() invalid socket";
+        LOG_ERROR << "Socket::connect() invalid socket";
         return false;
     }
 
     int32_t rt = ::connect(m_fd, peerAddr->getAddr(), peerAddr->getAddrLen());
     if(rt < 0) {
-        // LOG_ERROR << "::connect() error, strerror = " << strerror(errno);
+        LOG_ERROR << "::connect() error, strerror = " << strerror(errno);
     } else {
         m_connected = true;
     }
@@ -155,7 +155,7 @@ Address::ptr Socket::getLocalAddr() {
     socklen_t len = sizeof(addr);
     int32_t rt = getsockname(m_fd, (sockaddr *)&addr, &len);
     if(rt < 0) {
-        // LOG_ERROR << "getsockname() error, strerror = " << strerror(errno);
+        LOG_ERROR << "getsockname() error, strerror = " << strerror(errno);
     }
 
     m_localAddr = std::make_shared<Address>(addr);
@@ -172,7 +172,7 @@ Address::ptr Socket::getRemoteAddr() {
     socklen_t len = sizeof(addr);
     int32_t rt = getpeername(m_fd, (sockaddr *)&addr, &len);
     if(rt < 0) {
-        // LOG_ERROR << "getpeername() error, strerror = " << strerror(errno);
+        LOG_ERROR << "getpeername() error, strerror = " << strerror(errno);
     }
 
     m_remoteAddr = std::make_shared<Address>(addr);

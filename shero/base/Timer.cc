@@ -73,10 +73,12 @@ Timer::Timer(EventLoop *loop)
       m_channel(loop, m_fd) {
 
     m_channel.setReadCallback(std::bind(&Timer::onTimer, this));
+    m_loop->runInLoop(std::bind(&Timer::timerCreated, this));
 }
 
 Timer::~Timer() {
     LOG_INFO << "~Timer";
+    m_loop->runInLoop(std::bind(&Timer::timerDestroyed, this));
 }
 
 void Timer::timerCreated() {

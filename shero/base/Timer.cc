@@ -78,7 +78,7 @@ Timer::Timer(EventLoop *loop)
 
 Timer::~Timer() {
     LOG_INFO << "~Timer";
-    m_loop->runInLoop(std::bind(&Timer::timerDestroyed, this));
+    close(m_fd);
 }
 
 void Timer::timerCreated() {
@@ -86,11 +86,11 @@ void Timer::timerCreated() {
     m_channel.addListenEvents(IOEvent::READ);
 }
 
+// external call
 void Timer::timerDestroyed() {
     m_channel.getEventLoop()->assertInLoopThread();
     m_channel.delAllListenEvents();
     m_channel.removeFromLoop();
-    close(m_fd);
 }
 
 void Timer::addTimer(TimerEvent::ptr timer, bool reset /*= true*/) {

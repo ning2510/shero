@@ -144,8 +144,6 @@ void EventLoop::queueInLoop(Functor cb) {
 }
 
 void EventLoop::doPendingFunctors() {
-    std::vector<Functor> functors;
-    
     {
         RWMutexType::ReadLock lock(m_mutex);
         if(m_pendingFunctors.empty()) {
@@ -153,6 +151,7 @@ void EventLoop::doPendingFunctors() {
         }
     }
 
+    std::vector<Functor> functors;
     m_callingpendingFunctors = true;
     {
         RWMutexType::WriteLock lock(m_mutex);

@@ -155,6 +155,7 @@ void TcpConnector::handleWrite() {
             } else {
                 ::close(sockfd);
             }
+            m_loop->runInLoop(std::bind(&Timer::timerDestroyed, m_timer));
         }
     }
 }

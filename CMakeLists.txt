@@ -11,6 +11,7 @@ include_directories(.)
 
 option(BENCH_MARK "benchmark" OFF)
 if(BENCH_MARK)
+    message("Bench mark mode")
 	add_definitions(-DBENCH_MARK)
 endif()
 

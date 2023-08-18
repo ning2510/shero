@@ -53,8 +53,6 @@ void TcpServer::start() {
     }
 }
 
-
-
 void TcpServer::newConnection(int32_t connfd, const Address& peerAddr) {
     m_mainLoop->assertInLoopThread();
     EventLoop* subLoop = m_eventThreadPool->GetNextLoop();

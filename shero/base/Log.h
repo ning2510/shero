@@ -203,6 +203,7 @@ public:
             int32_t maxSize = 5 * 1024 * 1024, int64_t interval = 500, 
             LogLevel::Level level = LogLevel::Level::DEBUG) {
 #ifdef BENCH_MARK
+        std::cout << "Bench mark mode" << std::endl;
         g_logger.reset(new Logger(mode, filePath, maxSize, interval, LogLevel::Level::ERROR));
 #else
         g_logger.reset(new Logger(mode, filePath, maxSize, interval, level));

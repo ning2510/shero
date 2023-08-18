@@ -39,6 +39,7 @@ public:
 
     void wakeup();
 
+    bool isLooping() const { return m_looping; }
     pid_t getThreadId() const { return m_tid; }
     int32_t getWakeupFd() const { return m_wakeupFd; }
 

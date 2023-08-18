@@ -6,6 +6,7 @@
 #include "shero/net/Buffer.h"
 #include "shero/base/Noncopyable.h"
 #include "shero/net/tcp/Callbacks.h"
+#include "shero/coroutine/Coroutine.h"
 #include "shero/net/http/HttpParser.h"
 
 #include <atomic>
@@ -13,12 +14,16 @@
 
 namespace shero {
 
+class TcpClient;
+class TcpServer;
 class EventLoop;
 
 class TcpConnection : public Noncopyable, public std::enable_shared_from_this<TcpConnection> {
 public:
     typedef std::shared_ptr<TcpConnection> ptr;
-    TcpConnection(int32_t connfd, EventLoop *subLoop, 
+    TcpConnection(TcpServer *server, int32_t connfd, EventLoop *subLoop, 
+            const std::string &name, Address peerAddr);
+    TcpConnection(TcpClient *client, int32_t connfd, EventLoop *subLoop, 
             const std::string &name, Address peerAddr);
     ~TcpConnection();
 
@@ -26,7 +31,8 @@ public:
     void shutdown();
     void forceClose();
 
-    void connectEstablished();
+    void ServerConnectEstablished();    // TcpServer method
+    void ClientconnectEstablished();    // TcpClient method
     void connectDestroyed();
 
     int32_t getConnfd() const { return m_connfd; }
@@ -64,6 +70,9 @@ private:
 
     void setState(ConnectionState state) { m_state = state; }
 
+    // TcpServer method
+    void MainLoopFunc();
+
     void handleRead();
     void handleWrite();
     void handleClose();
@@ -77,12 +86,13 @@ private:
     void forceCloseInLoop();
 
 private:
-    bool m_stop;
+    std::atomic_bool m_stop;
     int32_t m_connfd;
     std::string m_name;
     std::atomic_int m_state;
 
-    std::unique_ptr<Channel> m_channel;
+    Coroutine::ptr m_coroutine;
+    Channel::ptr m_channel;
 
     Buffer m_input;
     Buffer m_output;

@@ -71,7 +71,7 @@ public:
 private:
     int32_t m_fd;
     EventLoop *m_loop;
-    Channel m_channel;
+    Channel::ptr m_channel;
     mutable MutexLock m_mutex;
 
     // 从小到大

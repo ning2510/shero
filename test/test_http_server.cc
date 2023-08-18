@@ -78,7 +78,6 @@ int main(int argc, char* argv[]) {
     dispatch->addServlet("/shero/ccc", testServlet);
 
     server.start();
-    loop.loop();
 }
 
 char favicon[555] = {

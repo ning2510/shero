@@ -1,5 +1,6 @@
 #include "shero/base/Util.h"
 #include "shero/base/Thread.h"
+#include "shero/coroutine/Coroutine.h"
 
 #include <assert.h>
 #include <iostream>
@@ -41,7 +42,8 @@ void *Thread::run(void *arg) {
 
     int rt = sem_post(&thread->m_sem);
     assert(rt == 0);
-
+    
+    Coroutine::GetCurCoroutine();
     thread->m_cb();
 
     return nullptr;

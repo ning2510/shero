@@ -15,6 +15,7 @@ Channel::Channel(EventLoop *loop, int32_t fd)
       m_event(IOEvent::NONE),
       m_revents(IOEvent::NONE),
       m_loop(loop),
+      m_cor(nullptr),
       m_status(ChannelStatus::NEW),
       m_tied(false) {
     LOG_INFO << "new Channel created, loop = " << loop << ", fd = " << fd;
@@ -115,6 +116,36 @@ void Channel::handleEventWithGuard() {
             m_writeCallback();
         }
     }
+}
+
+// ChannelManager
+ChannelManager::ChannelManager(int32_t size /*= 256*/)
+    : m_size(size),
+      m_channels(size + 1) {
+}
+
+Channel::ptr ChannelManager::getChannel(int32_t fd, EventLoop *loop /*= nullptr*/) {
+    MutexLockGuard lock(m_mutex);
+    int32_t size = (int32_t)m_channels.size();
+    if(fd >= (int32_t)m_channels.size()) {
+        int32_t newSize = (size * 1.5) <= fd ? fd : size * 1.5;
+        m_channels.resize(newSize + 1);
+    }
+
+    loop = loop != nullptr ? loop : EventLoop::GetEventLoop();
+    if(m_channels[fd]) {
+        if(m_channels[fd]->getEventLoop() != loop) {
+            LOG_WARN << "getChannel exist, fd = " << fd << ", loop = " 
+                << m_channels[fd]->getEventLoop() << ", now loop = " << loop
+                << ", don't worry! it may be trying to wake up the loop[" 
+                << m_channels[fd]->getEventLoop() << "]";
+        }
+        return m_channels[fd];
+    }
+
+    m_channels[fd] = std::make_shared<Channel>(loop, fd);
+    LOG_INFO << "Channel Manager new a channel, fd = " << fd; 
+    return m_channels[fd];
 }
 
 }   // namespace shero

@@ -4,6 +4,7 @@
 #include "shero/net/Socket.h"
 #include "shero/net/Channel.h"
 #include "shero/net/Address.h"
+#include "shero/coroutine/Coroutine.h"
 
 #include <memory>
 #include <functional>
@@ -32,8 +33,10 @@ public:
     Address getLocalAddr() const { return m_localAddr; }
     Address getPeerAddr() const { return m_peerAddr; }
 
+    Coroutine *getAcceptCor() const { return m_acceptCor.get(); }
+
 private:
-    void handleRead();
+    void MainLoopFunc();
 
 private:
     bool m_listenning;
@@ -42,8 +45,9 @@ private:
 
     Address m_localAddr;
     Address m_peerAddr;
+    Coroutine::ptr m_acceptCor;
 
-    Channel m_acceptChannel;
+    Channel::ptr m_acceptChannel;
     NewConnectionCallback m_newConnectionCallback;
 };
 

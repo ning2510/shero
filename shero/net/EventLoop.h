@@ -17,6 +17,7 @@ class EventLoop : public Noncopyable {
 public:
     typedef std::shared_ptr<EventLoop> ptr;
     typedef std::function<void()> Functor;
+    static EventLoop *GetEventLoop();
 
     EventLoop();
     ~EventLoop();  
@@ -56,7 +57,7 @@ private:
     mutable MutexLock m_mutex;
 
     int32_t m_wakeupFd;
-    std::unique_ptr<Channel> m_wakeupChannel;
+    Channel::ptr m_wakeupChannel;
     std::unique_ptr<Poller> m_poller;
     
     bool m_eventHandling;

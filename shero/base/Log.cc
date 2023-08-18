@@ -1,5 +1,6 @@
 #include "shero/base/Log.h"
 #include "shero/base/Util.h"
+#include "shero/coroutine/Coroutine.h"
 
 #include <time.h>
 #include <stdio.h>
@@ -119,7 +120,7 @@ std::stringstream &LogEvent::getSS() {
          << "[" << LogLevel::Level2String(m_level) << "]\t"
          << "[" << GetPid() << "]\t"
          << "[" << GetThreadId() << "]\t"
-         << "[" << 0 << "]\t"
+         << "[" << Coroutine::GetCurCoroutine()->getCorId() << "]\t"
          << "[" << m_file << ":" << m_line << "]\t";
 
     return m_ss;

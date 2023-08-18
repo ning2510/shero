@@ -42,6 +42,7 @@ int main() {
     Address address(9999);
 
     WSServer::ptr server(new WSServer(&loop, address, "WSServer"));
+    server->setThreadNums(4);
     WSDispatch *dispatch = server->getWSDispatch();
     dispatch->addServlet("/shero/xxx",
         [](WSFrameMessage::ptr req, TcpConnectionPtr conn) {
@@ -63,7 +64,6 @@ int main() {
     dispatch->addServlet("/shero/ccc", testServlet);
 
     server->start();
-    loop.loop();
 
     return 0;
 }

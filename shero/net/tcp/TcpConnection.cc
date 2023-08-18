@@ -2,16 +2,41 @@
 #include "shero/net/Socket.h"
 #include "shero/net/Channel.h"
 #include "shero/net/EventLoop.h"
-// #include "shero/net/tcp/TcpClient.h"
+#include "shero/net/tcp/TcpClient.h"
 #include "shero/net/tcp/TcpConnection.h"
+#include "shero/coroutine/CoroutinePool.h"
 
+#include <iostream>
 #include <assert.h>
 #include <string.h>
 #include <unistd.h>
 
 namespace shero {
 
-TcpConnection::TcpConnection(int32_t connfd, EventLoop *subLoop, 
+// TcpServer will create it by this method
+TcpConnection::TcpConnection(TcpServer *server, int32_t connfd, EventLoop *subLoop, 
+            const std::string &name, Address peerAddr)
+    : m_stop(false),
+      m_connfd(connfd),
+      m_name(name),
+      m_state(Connecting),
+      m_input(),
+      m_output(),
+      m_peerAddr(peerAddr),
+      m_subLoop(subLoop) {
+
+    m_channel = ChannelMgr::GetInstance()->getChannel(connfd, subLoop);
+    m_channel->setCloseCallback(std::bind(&TcpConnection::handleClose, this));
+    m_channel->setErrorCallback(std::bind(&TcpConnection::handleError, this));
+    
+    m_coroutine = CoroutinePool::GetCoroutinePool()->getCoroutineInstance();
+    m_coroutine->setCallback(std::bind(&TcpConnection::MainLoopFunc, this));
+
+    LOG_INFO << "[Server] TcpConnection constructor [" << m_name 
+        << "], connfd = " << m_connfd;
+}
+
+TcpConnection::TcpConnection(TcpClient *client, int32_t connfd, EventLoop *subLoop, 
             const std::string &name, Address peerAddr)
     : m_stop(false),
       m_connfd(connfd),
@@ -27,6 +52,9 @@ TcpConnection::TcpConnection(int32_t connfd, EventLoop *subLoop,
     m_channel->setWriteCallback(std::bind(&TcpConnection::handleWrite, this));
     m_channel->setCloseCallback(std::bind(&TcpConnection::handleClose, this));
     m_channel->setErrorCallback(std::bind(&TcpConnection::handleError, this));
+
+    LOG_INFO << "[Client] TcpConnection constructor [" << m_name 
+        << "], connfd = " << m_connfd;
 }
 
 TcpConnection::~TcpConnection() {
@@ -36,9 +64,24 @@ TcpConnection::~TcpConnection() {
     assert(m_state == Disconnected);
 }
 
-void TcpConnection::connectEstablished() {
+void TcpConnection::MainLoopFunc() {
+    while(!m_stop) {
+        handleRead();
+    }
+}
+
+// TcpServer method
+void TcpConnection::ServerConnectEstablished() {
     m_subLoop->assertInLoopThread();
-    assert(m_state == Connecting);
+    setState(Connected);
+    m_channel->tie(shared_from_this());
+    m_connectionCallback(shared_from_this());
+    Coroutine::Resume(m_coroutine.get());
+}
+
+// TcpClient method
+void TcpConnection::ClientconnectEstablished() {
+    m_subLoop->assertInLoopThread();
     setState(Connected);
     m_channel->tie(shared_from_this());
     m_channel->addListenEvents(IOEvent::READ);
@@ -139,6 +182,7 @@ void TcpConnection::shutdownInLoop() {
         if(::shutdown(m_connfd, SHUT_WR) < 0) {
             LOG_ERROR << "::shutdown error";
         }
+        m_stop = true;
     }
 }
 
@@ -168,7 +212,9 @@ void TcpConnection::handleRead() {
     if(n > 0) {
         m_messageCallback(shared_from_this(), &m_input);
     } else if(n == 0) {
-        handleClose();
+        if(!m_stop) {
+            handleClose();
+        }
     } else {
         errno = saveError;
         LOG_ERROR << "TcpConnection::hanleRead error"
@@ -210,6 +256,7 @@ void TcpConnection::handleClose() {
         << m_connfd << ", state = " << m_state;
 
     assert(m_state == Connected || m_state == Disconnecting);
+    m_stop = true;
     setState(Disconnected);
     m_channel->delAllListenEvents();
 
@@ -230,6 +277,7 @@ void TcpConnection::handleError() {
     (void)error;
     LOG_ERROR << "TcpConnection::handleError name = " << m_name
         << " - SO_ERROR = " << error << ", strerror = " << strerror(error);
+    m_stop = true;
 }
 
 }   // namespace shero

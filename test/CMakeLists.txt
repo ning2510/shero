@@ -27,3 +27,6 @@ target_link_libraries(test_ws_server ${LIBS})
 
 add_executable(test_ws_client ./test_ws_client.cc)
 target_link_libraries(test_ws_client ${LIBS})
+
+add_executable(test_coroutine ./test_coroutine.cc)
+target_link_libraries(test_coroutine ${LIBS})

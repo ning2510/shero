@@ -1,4 +1,5 @@
 #include "shero/base/Log.h"
+#include "shero/base/Macro.h"
 #include "shero/base/Mutex.h"
 #include "shero/net/Poller.h"
 #include "shero/net/Channel.h"
@@ -16,6 +17,14 @@ static thread_local EventLoop *t_eventLoop = nullptr;
 
 const int EventLoop::m_pollTimeMs = 100000;
 
+EventLoop *EventLoop::GetEventLoop() {
+    if(SHERO_UNLICKLY(!t_eventLoop)) {
+        LOG_WARN << "EventLoop::GetEventLoop() - no event loop in this thread";
+        return nullptr;
+    }
+    return t_eventLoop;
+}
+
 int32_t createEventFd() {
     int evtfd = ::eventfd(0, EFD_NONBLOCK | EFD_CLOEXEC);
     if(evtfd < 0) {
@@ -30,7 +39,6 @@ EventLoop::EventLoop()
     : m_tid(GetThreadId()),
       m_looping(false),
       m_wakeupFd(createEventFd()),
-      m_wakeupChannel(new Channel(this, m_wakeupFd)),
       m_poller(Poller::newDefaultPoller(this)),
       m_eventHandling(false),
       m_callingpendingFunctors(false),
@@ -43,6 +51,7 @@ EventLoop::EventLoop()
         t_eventLoop = this;
     }
 
+    m_wakeupChannel = ChannelMgr::GetInstance()->getChannel(m_wakeupFd, this);
     m_wakeupChannel->setReadCallback(
         std::bind(&EventLoop::handleRead, this));
     m_wakeupChannel->addListenEvents(IOEvent::READ);
@@ -99,6 +108,9 @@ void EventLoop::loop() {
     
         doPendingFunctors();
     }
+
+    m_looping = false;
+    LOG_DEBUG << "EventLoop [" << this << "] end loop";
 }
 
 void EventLoop::abortNotInLoopThread() {

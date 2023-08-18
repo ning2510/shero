@@ -5,6 +5,7 @@
 #include "shero/net/tcp/TcpAcceptor.h"
 #include "shero/net/tcp/TcpConnection.h"
 #include "shero/net/EventLoopThreadPool.h"
+#include "shero/coroutine/CoroutinePool.h"
 
 #include <atomic>
 #include <memory>
@@ -44,6 +45,7 @@ private:
     int32_t m_nextConnId;
     std::string m_nameArg;
     EventLoop* m_mainLoop;
+    CoroutinePool *m_coroutinePool;
 
     std::unique_ptr<TcpAcceptor> m_acceptor;
     std::shared_ptr<EventLoopThreadPool> m_eventThreadPool;

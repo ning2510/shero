@@ -69,10 +69,10 @@ void TimerEvent::resetArrive() {
 // Timer
 Timer::Timer(EventLoop *loop)
     : m_fd(createTimerFd()),
-      m_loop(loop),
-      m_channel(loop, m_fd) {
+      m_loop(loop) {
 
-    m_channel.setReadCallback(std::bind(&Timer::onTimer, this));
+    m_channel = ChannelMgr::GetInstance()->getChannel(m_fd, loop);
+    m_channel->setReadCallback(std::bind(&Timer::onTimer, this));
     m_loop->runInLoop(std::bind(&Timer::timerCreated, this));
 }
 
@@ -82,15 +82,15 @@ Timer::~Timer() {
 }
 
 void Timer::timerCreated() {
-    m_channel.getEventLoop()->assertInLoopThread();
-    m_channel.addListenEvents(IOEvent::READ);
+    m_channel->getEventLoop()->assertInLoopThread();
+    m_channel->addListenEvents(IOEvent::READ);
 }
 
 // external call
 void Timer::timerDestroyed() {
-    m_channel.getEventLoop()->assertInLoopThread();
-    m_channel.delAllListenEvents();
-    m_channel.removeFromLoop();
+    m_channel->getEventLoop()->assertInLoopThread();
+    m_channel->delAllListenEvents();
+    m_channel->removeFromLoop();
 }
 
 void Timer::addTimer(TimerEvent::ptr timer, bool reset /*= true*/) {

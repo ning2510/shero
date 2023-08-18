@@ -1,7 +1,10 @@
 #ifndef __SHERO_CHANNEL_H
 #define __SHERO_CHANNEL_H
 
+#include "shero/base/Mutex.h"
+#include "shero/base/Singleton.h"
 #include "shero/base/Noncopyable.h"
+#include "shero/coroutine/Coroutine.h"
 
 #include <vector>
 #include <memory>
@@ -60,6 +63,10 @@ public:
     bool isWriting() { return m_event & IOEvent::WRITE; }
     bool isNoneEvent() { return m_event == IOEvent::NONE; }
 
+    void setCoroutine(Coroutine *cor) { m_cor = cor; }
+    Coroutine *getCoroutine() const { return m_cor; }
+    void clearCoroutine() { m_cor = nullptr; }
+
 private:
     void updateToLoop();
     void handleEventWithGuard();
@@ -69,6 +76,7 @@ private:
     int32_t m_event;
     int32_t m_revents;
     EventLoop *m_loop;
+    Coroutine *m_cor;
 
     ChannelStatus m_status;
 
@@ -80,6 +88,21 @@ private:
     std::function<void()> m_errorCallback;
     std::function<void()> m_closeCallback;
 };
+
+class ChannelManager {
+public:
+    typedef std::shared_ptr<ChannelManager> ptr;
+    ChannelManager(int32_t size = 512);
+
+    Channel::ptr getChannel(int32_t fd, EventLoop *loop = nullptr);
+
+private:
+    mutable MutexLock m_mutex;
+    int32_t m_size;
+    std::vector<Channel::ptr> m_channels;
+};
+
+typedef Singleton<ChannelManager> ChannelMgr;
 
 }  // namespace shero
 

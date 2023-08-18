@@ -63,8 +63,6 @@ int main() {
     EchoServer server(&loop, addr, "EchoServer");
     server.start();
 
-    loop.loop();
     std::cout << "main end\n";
-
     return 0;
 }

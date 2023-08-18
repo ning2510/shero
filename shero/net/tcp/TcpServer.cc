@@ -22,6 +22,7 @@ TcpServer::TcpServer(EventLoop *mainLoop,
       m_nextConnId(1),
       m_nameArg(nameArg),
       m_mainLoop(CheckLoopIsNull(mainLoop)),
+      m_coroutinePool(CoroutinePool::GetCoroutinePool()),
       m_acceptor(new TcpAcceptor(mainLoop, addr)),
       m_eventThreadPool(new EventLoopThreadPool(mainLoop, nameArg)),
       m_threadInitCallback(),
@@ -49,7 +50,10 @@ void TcpServer::start() {
     if(m_start++ == 0) {
         m_eventThreadPool->start(m_threadInitCallback);
         assert(!m_acceptor->listening());
-        m_mainLoop->runInLoop(std::bind(&TcpAcceptor::listen, m_acceptor.get()));
+
+        m_acceptor->listen();
+        Coroutine::Resume(m_acceptor->getAcceptCor());
+        m_mainLoop->loop();
     }
 }
 
@@ -65,7 +69,7 @@ void TcpServer::newConnection(int32_t connfd, const Address& peerAddr) {
     LOG_INFO << "TcpServer::newConnection [" << connName 
         << "] created"<< ", current loop = " << subLoop << ", connfd = " << connfd;
     
-    TcpConnectionPtr conn(new TcpConnection(connfd, subLoop, connName, peerAddr));
+    TcpConnectionPtr conn(new TcpConnection(this, connfd, subLoop, connName, peerAddr));
     m_connections[connfd] = conn;
 
     conn->setConnectionCallback(m_connectionCallback);
@@ -74,7 +78,7 @@ void TcpServer::newConnection(int32_t connfd, const Address& peerAddr) {
     conn->setCloseCallback(
         std::bind(&TcpServer::removeConnection, this, std::placeholders::_1));
         
-    subLoop->runInLoop(std::bind(&TcpConnection::connectEstablished, conn));
+    subLoop->runInLoop(std::bind(&TcpConnection::ServerConnectEstablished, conn));
 }
 
 

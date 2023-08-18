@@ -16,7 +16,6 @@ class EventLoop;
 class EventLoopThread : public Noncopyable {
 public:
     typedef std::shared_ptr<EventLoopThread> ptr;
-    typedef Mutex MutexType;
     typedef std::function<void(EventLoop *)> ThreadInitCallback;
     EventLoopThread(const ThreadInitCallback &cb = nullptr,
         const std::string &name = "");
@@ -32,7 +31,7 @@ private:
     Thread m_thread;
     EventLoop *m_loop;
     ThreadInitCallback m_cb;
-    MutexType m_mutex;
+    mutable MutexLock m_mutex;
     pthread_cond_t m_cond;
 };
 

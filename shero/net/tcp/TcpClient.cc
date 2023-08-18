@@ -41,7 +41,7 @@ TcpClient::~TcpClient() {
     TcpConnectionPtr conn;
     bool unique = false;
     {
-        MutexType::Lock lock(m_mutex);
+        MutexLockGuard lock(m_mutex);
         unique = m_conn.unique();
         conn = m_conn;
     }
@@ -69,7 +69,7 @@ void TcpClient::disconnect() {
     if(m_connect) {
         m_connect = false;
         {
-            MutexType::Lock lock(m_mutex);
+            MutexLockGuard lock(m_mutex);
             if(m_conn) {
                 LOG_INFO << "TcpClient::disconnect TcpConnection[" << m_conn->getName() << "]";
                 m_conn->shutdown();
@@ -104,7 +104,7 @@ void TcpClient::newConnection(int32_t sockfd) {
         std::bind(&TcpClient::removeConnection, this, std::placeholders::_1));
 
     {
-        MutexType::Lock lock(m_mutex);
+        MutexLockGuard lock(m_mutex);
         m_conn = conn;
     }
 
@@ -115,7 +115,7 @@ void TcpClient::removeConnection(const TcpConnectionPtr &conn) {
     LOG_INFO << "TcpClient::removeConnection [" << conn->getName() << "]";
     m_loop->assertInLoopThread();
     {
-        MutexType::Lock lock(m_mutex);
+        MutexLockGuard lock(m_mutex);
         m_conn.reset();
     }
 

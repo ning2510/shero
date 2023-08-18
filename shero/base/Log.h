@@ -126,7 +126,6 @@ private:
 class AsyncLogger {
 public:
     typedef std::shared_ptr<AsyncLogger> ptr;
-    typedef Mutex MutexType;
 
     AsyncLogger(LogMode::Mode mode, const char *filePath, int32_t maxSize, int64_t interval);
     ~AsyncLogger();
@@ -164,7 +163,7 @@ private:
 
     FILE *m_file;
 
-    MutexType m_mutex;
+    mutable MutexLock m_mutex;
     sem_t m_sem;
     pthread_cond_t m_cond;
 };
@@ -172,7 +171,6 @@ private:
 class Logger {
 public:
     typedef std::shared_ptr<Logger> ptr;
-    typedef Mutex MutexType;
     // 5MB, 500ms
     Logger(LogMode::Mode mode, const char *filePath, 
         int32_t maxSize, int64_t interval, LogLevel::Level level);
@@ -184,7 +182,7 @@ public:
     void setLevel(LogLevel::Level v) { m_level = v; }
 
 private:
-    MutexType m_mutex;
+    mutable MutexLock m_mutex;
     LogLevel::Level m_level;
     AsyncLogger::ptr m_asyncLogger;
 

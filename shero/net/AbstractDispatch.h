@@ -14,7 +14,6 @@ namespace shero {
 class AbstractDispatch {
 public:
     typedef std::shared_ptr<AbstractDispatch> ptr;
-    typedef RWMutex RWMutexType;
     AbstractDispatch() {}
     virtual ~AbstractDispatch() {}
 
@@ -33,7 +32,7 @@ public:
     void setDefaultServlet(AbstractServlet::ptr v) { m_default = v; }
 
 protected:
-    RWMutexType m_mutex;
+    mutable MutexLock m_mutex;
     AbstractServlet::ptr m_default;
     // uri(/shero/xxx) -> servlet;
     std::unordered_map<std::string, AbstractServlet::ptr> m_servlets;

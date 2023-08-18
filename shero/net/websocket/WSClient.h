@@ -17,7 +17,6 @@ namespace ws {
 class WSClient {
 public:
     typedef std::shared_ptr<WSClient> ptr;
-    typedef Mutex MutexType;
     typedef std::function<void(const WSFrameMessage::ptr &)> WSMessageCallback;
     typedef std::function<void()> WSConnectionCallback;
 
@@ -53,7 +52,7 @@ private:
 private:
     bool m_connect;
     EventLoop *m_loop;
-    MutexType m_mutex;
+    mutable MutexLock m_mutex;
     std::string m_key;
     WSMessageCallback m_messageCallback;
     WSConnectionCallback m_connectionCallback;

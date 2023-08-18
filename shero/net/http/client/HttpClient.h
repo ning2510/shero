@@ -28,7 +28,6 @@ class HttpClient {
 public:
     typedef std::shared_ptr<HttpClient> ptr;
     typedef std::function<void()> SendRequestCallback;
-    typedef Mutex MutexType;
     HttpClient(EventLoop *loop, const Address &serverAddr, 
             const std::string &name, bool retry = false);
     ~HttpClient();
@@ -95,7 +94,7 @@ private:
 
 private:
     bool m_connect;
-    MutexType m_mutex;
+    mutable MutexLock m_mutex;
     EventLoop *m_loop;
     TcpClient m_client;
 

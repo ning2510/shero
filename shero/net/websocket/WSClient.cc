@@ -53,7 +53,7 @@ void WSClient::disconnect() {
     if(m_connect) {
         m_connect = false;
         {
-            MutexType::Lock lock(m_mutex);
+            MutexLockGuard lock(m_mutex);
             m_conn.reset();
         }
         m_client.disconnect();
@@ -62,7 +62,7 @@ void WSClient::disconnect() {
 
 void WSClient::sendHttp(const std::string &msg) {
     {
-        MutexType::Lock lock(m_mutex);
+        MutexLockGuard lock(m_mutex);
         m_conn->send(msg);
     }
 }
@@ -70,12 +70,12 @@ void WSClient::sendHttp(const std::string &msg) {
 void WSClient::send() {
     std::vector<WSFrameMessage::ptr> tmp;
     {
-        MutexType::Lock lock(m_mutex);
+        MutexLockGuard lock(m_mutex);
         tmp.swap(m_messages);
     }
     std::string msg = WSFrameMessage::EncodeWSFrameMessage(tmp);
     {
-        MutexType::Lock lock(m_mutex);
+        MutexLockGuard lock(m_mutex);
         m_conn->send(msg);
     }
 }
@@ -102,17 +102,14 @@ void WSClient::onConnection(const TcpConnectionPtr &conn) {
     if(conn->isConnected()) {
         LOG_INFO << "[WSClient] Connection UP : " << conn->getPeerAddr().toIpPort();
         {
-            MutexType::Lock lock(m_mutex);
+            MutexLockGuard lock(m_mutex);
             m_conn = conn;
         }
         setState(TCP);
         WSHandShake();
     } else {
         LOG_INFO << "[WSClient] Connection DOWN : " << conn->getPeerAddr().toIpPort();
-        {
-            MutexType::Lock lock(m_mutex);
-            disconnect();
-        }
+        disconnect();
     }
 }
 

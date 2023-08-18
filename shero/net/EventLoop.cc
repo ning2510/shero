@@ -97,12 +97,7 @@ void EventLoop::loop() {
         m_currentActiveChannel = nullptr;
         m_eventHandling = false;
     
-        // FIXME: SIGSEGV occasionally
-        try {
-            doPendingFunctors();
-        } catch(...) {
-            LOG_ERROR << "something error in EventLoop::doPendingFunctors()";
-        }
+        doPendingFunctors();
     }
 }
 
@@ -128,14 +123,8 @@ void EventLoop::runInLoop(Functor cb) {
 
 void EventLoop::queueInLoop(Functor cb) {
     {
-        RWMutex::WriteLock lock(m_mutex);
-
-        // FIXME: SIGSEGV occasionally
-        try {
-            m_pendingFunctors.push_back(std::move(cb));
-        } catch(...) {
-            LOG_ERROR << "something error in EventLoop::queueInLoop()";
-        }
+        MutexLockGuard lock(m_mutex);
+        m_pendingFunctors.push_back(std::move(cb));
     }
 
     if(!isInLoopThread() || m_callingpendingFunctors) {
@@ -144,17 +133,10 @@ void EventLoop::queueInLoop(Functor cb) {
 }
 
 void EventLoop::doPendingFunctors() {
-    {
-        RWMutexType::ReadLock lock(m_mutex);
-        if(m_pendingFunctors.empty()) {
-            return ;
-        }
-    }
-
     std::vector<Functor> functors;
     m_callingpendingFunctors = true;
     {
-        RWMutexType::WriteLock lock(m_mutex);
+        MutexLockGuard lock(m_mutex);
         functors.swap(m_pendingFunctors);
     }
 

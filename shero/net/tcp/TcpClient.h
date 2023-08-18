@@ -17,7 +17,6 @@ class EventLoop;
 class TcpClient {
 public:
     typedef std::shared_ptr<TcpClient> ptr;
-    typedef Mutex MutexType;
     TcpClient(EventLoop *loop, const Address &serverAddr, 
         bool retry = false, const std::string &name = "");
     ~TcpClient();
@@ -48,7 +47,7 @@ private:
     int32_t m_nextConnId;
     std::string m_nameArg;
     EventLoop *m_loop;
-    MutexType m_mutex;
+    mutable MutexLock m_mutex;
     
     TcpConnectionPtr m_conn;
     TcpConnector::ptr m_connector;

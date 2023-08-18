@@ -51,7 +51,6 @@ class Timer {
 friend class TimerEvent;
 public:
     typedef std::shared_ptr<Timer> ptr;
-    typedef RWMutex RWMutexType;
     Timer(EventLoop *loop);
     ~Timer();
 
@@ -73,7 +72,7 @@ private:
     int32_t m_fd;
     EventLoop *m_loop;
     Channel m_channel;
-    RWMutexType m_mutex;
+    mutable MutexLock m_mutex;
 
     // 从小到大
     std::set<TimerEvent::ptr, TimerEvent::Comparator> m_timers;

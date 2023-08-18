@@ -305,7 +305,7 @@ void HttpClient::onConnection(const TcpConnectionPtr &conn) {
     if(conn->isConnected()) {
         LOG_INFO << "[HttpClient] Connectuion UP : " << conn->getPeerAddr().toIpPort();
         {
-            MutexType::Lock lock(m_mutex);
+            MutexLockGuard lock(m_mutex);
             m_conn = conn;
             m_connect = true;
         }
@@ -315,7 +315,7 @@ void HttpClient::onConnection(const TcpConnectionPtr &conn) {
     } else {
         LOG_INFO << "[HttpClient] Connectuion DOWN : " << conn->getPeerAddr().toIpPort();
         {
-            MutexType::Lock lock(m_mutex);
+            MutexLockGuard lock(m_mutex);
             m_client.disconnect();
             m_connect = false;
             onMessage(nullptr, nullptr);

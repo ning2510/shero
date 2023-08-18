@@ -20,7 +20,7 @@ void HttpDispatch::handle(const HttpRequest& req, HttpResponse* res) {
 }
 
 AbstractServlet::ptr HttpDispatch::getMatchedServlet(const std::string &uri) {
-    RWMutexType::ReadLock rlock(m_mutex);
+    MutexLockGuard lock(m_mutex);
     auto it = m_servlets.find(uri);
     if(it != m_servlets.end()) {
         return it->second;
@@ -36,7 +36,7 @@ AbstractServlet::ptr HttpDispatch::getMatchedServlet(const std::string &uri) {
 }
 
 void HttpDispatch::addServlet(const std::string &uri, AbstractServlet::ptr slt) {
-    RWMutexType::WriteLock lock(m_mutex);
+    MutexLockGuard lock(m_mutex);
     m_servlets[uri] = slt;
 }
 
@@ -47,7 +47,7 @@ void HttpDispatch::addServlet(const std::string &uri, FunctionServlet::ServletCa
 
 void HttpDispatch::addGlobServlet(const std::string &uri, AbstractServlet::ptr slt) {
     delGlobServlet(uri);
-    RWMutexType::WriteLock lock(m_mutex);
+    MutexLockGuard lock(m_mutex);
     m_globServlets.push_back(std::make_pair(uri, slt));
 }
 
@@ -57,12 +57,12 @@ void HttpDispatch::addGlobServlet(const std::string &uri, FunctionServlet::Servl
 }
 
 void HttpDispatch::delServlet(const std::string &uri) {
-    RWMutexType::WriteLock lock(m_mutex);
+    MutexLockGuard lock(m_mutex);
     m_servlets.erase(uri);
 }
 
 void HttpDispatch::delGlobServlet(const std::string &uri) {
-    RWMutexType::WriteLock lock(m_mutex);
+    MutexLockGuard lock(m_mutex);
     for(auto it = m_globServlets.begin(); it != m_globServlets.end(); it++) {
         if(it->first == uri) {
             m_globServlets.erase(it);
@@ -72,13 +72,13 @@ void HttpDispatch::delGlobServlet(const std::string &uri) {
 }
 
 AbstractServlet::ptr HttpDispatch::getServlet(const std::string &uri) {
-    RWMutexType::ReadLock lock(m_mutex);
+    MutexLockGuard lock(m_mutex);
     auto it = m_servlets.find(uri);
     return it == m_servlets.end() ? nullptr : it->second;
 }
 
 AbstractServlet::ptr HttpDispatch::getGlobServlet(const std::string &uri) {
-    RWMutexType::ReadLock lock(m_mutex);
+    MutexLockGuard lock(m_mutex);
     for(auto &it : m_globServlets) {
         if(it.first == uri) {
             return it.second;

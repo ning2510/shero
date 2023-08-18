@@ -173,9 +173,10 @@ void AsyncLogger::join() {
 }
 
 void AsyncLogger::push(std::vector<std::string> &buffer) {
-    MutexType::Lock lock(m_mutex);
-    m_queue.push(buffer);
-    lock.unlock();
+    {
+        MutexLockGuard lock(m_mutex);
+        m_queue.push(buffer);
+    }
 
     pthread_cond_signal(&m_cond);
 }
@@ -187,22 +188,23 @@ void *AsyncLogger::mainLoop(void *arg) {
     assert(rt == 0);
 
     while(1) {
-        MutexType::Lock lock(logger->m_mutex);
-        while(logger->m_queue.empty() && !logger->m_stop) {
-            pthread_cond_wait(&logger->m_cond, logger->m_mutex.getMutex());
-        }
-        bool isStop = logger->m_stop;
-        if(isStop && logger->m_queue.empty()) {
-            lock.unlock();
-            break;
-        }
-        
+        bool isStop;
         std::vector<std::string> msg;
-        if(!logger->m_queue.empty()) {
-            msg = logger->m_queue.front();
-            logger->m_queue.pop();
+        {
+            MutexLockGuard lock(logger->m_mutex);
+            while(logger->m_queue.empty() && !logger->m_stop) {
+                pthread_cond_wait(&logger->m_cond, logger->m_mutex.getPthreadMutex());
+            }
+            isStop = logger->m_stop;
+            if(isStop && logger->m_queue.empty()) {
+                break;
+            }
+
+            if(!logger->m_queue.empty()) {
+                msg = logger->m_queue.front();
+                logger->m_queue.pop();
+            }
         }
-        lock.unlock();
     
         if(logger->m_mode != LogMode::Mode::FILE) {
             for(auto &i : msg) {
@@ -273,11 +275,12 @@ Logger::~Logger() {
 }
 
 void Logger::log(std::string msg) {
-    MutexType::Lock lock(m_mutex);
-    m_buffer.push_back(msg);
     std::vector<std::string> tmp;
-    tmp.swap(m_buffer);
-    lock.unlock();
+    {
+        MutexLockGuard lock(m_mutex);
+        m_buffer.push_back(msg);
+        tmp.swap(m_buffer);
+    }
 
     m_asyncLogger->push(tmp);
 }

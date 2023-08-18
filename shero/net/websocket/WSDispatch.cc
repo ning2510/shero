@@ -21,7 +21,7 @@ void WSDispatch::handle(const std::string &path,
 }
 
 AbstractServlet::ptr WSDispatch::getMatchedServlet(const std::string &uri) {
-    RWMutexType::ReadLock rlock(m_mutex);
+    MutexLockGuard lock(m_mutex);
     auto it = m_servlets.find(uri);
     if(it != m_servlets.end()) {
         return it->second;
@@ -37,7 +37,7 @@ AbstractServlet::ptr WSDispatch::getMatchedServlet(const std::string &uri) {
 }
 
 void WSDispatch::addServlet(const std::string &uri, AbstractServlet::ptr slt) {
-    RWMutexType::WriteLock lock(m_mutex);
+    MutexLockGuard lock(m_mutex);
     m_servlets[uri] = slt;
 }
 
@@ -48,7 +48,7 @@ void WSDispatch::addServlet(const std::string &uri, FunctionWSServlet::HandleCal
 
 void WSDispatch::addGlobServlet(const std::string &uri, AbstractServlet::ptr slt) {
     delGlobServlet(uri);
-    RWMutexType::WriteLock lock(m_mutex);
+    MutexLockGuard lock(m_mutex);
     m_globServlets.push_back(std::make_pair(uri, slt));
 
 }
@@ -59,12 +59,12 @@ void WSDispatch::addGlobServlet(const std::string &uri, FunctionWSServlet::Handl
 }
 
 void WSDispatch::delServlet(const std::string &uri) {
-    RWMutexType::WriteLock lock(m_mutex);
+    MutexLockGuard lock(m_mutex);
     m_servlets.erase(uri);
 }
 
 void WSDispatch::delGlobServlet(const std::string &uri) {
-    RWMutexType::WriteLock lock(m_mutex);
+    MutexLockGuard lock(m_mutex);
     for(auto it = m_globServlets.begin(); it != m_globServlets.end(); it++) {
         if(it->first == uri) {
             m_globServlets.erase(it);
@@ -74,13 +74,13 @@ void WSDispatch::delGlobServlet(const std::string &uri) {
 }
 
 AbstractServlet::ptr WSDispatch::getServlet(const std::string &uri) {
-    RWMutexType::ReadLock lock(m_mutex);
+    MutexLockGuard lock(m_mutex);
     auto it = m_servlets.find(uri);
     return it == m_servlets.end() ? nullptr : it->second;
 }
 
 AbstractServlet::ptr WSDispatch::getGlobServlet(const std::string &uri) {
-    RWMutexType::ReadLock lock(m_mutex);
+    MutexLockGuard lock(m_mutex);
     for(auto &it : m_globServlets) {
         if(it.first == uri) {
             return it.second;

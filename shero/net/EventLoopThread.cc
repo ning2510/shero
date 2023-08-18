@@ -30,9 +30,9 @@ EventLoop* EventLoopThread::startLoop() {
 
     EventLoop* loop = nullptr;
     {
-        Mutex::Lock lock(m_mutex);
+        MutexLockGuard lock(m_mutex);
         while (m_loop == nullptr) {
-            pthread_cond_wait(&m_cond, m_mutex.getMutex());
+            pthread_cond_wait(&m_cond, m_mutex.getPthreadMutex());
         }
         loop = m_loop;
     }
@@ -46,13 +46,13 @@ void EventLoopThread::threadFunc() {
     }
 
     {
-        MutexType::Lock lock(m_mutex);
+        MutexLockGuard lock(m_mutex);
         m_loop = &loop;
         pthread_cond_signal(&m_cond);
     }
 
   loop.loop();
-  MutexType::Lock lock(m_mutex);
+  MutexLockGuard lock(m_mutex);
   m_loop = nullptr;
 }
 

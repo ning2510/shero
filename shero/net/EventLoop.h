@@ -16,7 +16,6 @@ namespace shero {
 class EventLoop : public Noncopyable {
 public:
     typedef std::shared_ptr<EventLoop> ptr;
-    typedef RWMutex RWMutexType;
     typedef std::function<void()> Functor;
 
     EventLoop();
@@ -54,7 +53,7 @@ private:
 
     pid_t m_tid;
     bool m_looping;
-    RWMutexType m_mutex;
+    mutable MutexLock m_mutex;
 
     int32_t m_wakeupFd;
     std::unique_ptr<Channel> m_wakeupChannel;

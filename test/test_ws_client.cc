@@ -69,8 +69,7 @@ int main() {
     EventLoopThread loopThread;
     EventLoop *loop = loopThread.startLoop();
 
-    WSClientTest client(loop, "http://10.13.0.39:9999/shero/xxx", "WSClientTest");
-    // WSClientTest client(loop, "http://127.0.0.1:9999/shero/xxx", "WSClientTest");
+    WSClientTest client(loop, "http://127.0.0.1:9999/shero/xxx", "WSClientTest");
     client.connect();
 
     std::string msg;

@@ -50,14 +50,14 @@ private:
         if(conn->isConnected()) {
             LOG_INFO << "Connectuion UP : " << conn->getPeerAddr().toIpPort();
             {
-                Mutex::Lock lock(m_mutex);
+                MutexLockGuard lock(m_mutex);
                 m_conn = conn;
                 m_connect = true;
             }
         } else {
             LOG_INFO << "Connection DOWN : " << conn->getPeerAddr().toIpPort();
             {
-                Mutex::Lock lock(m_mutex);
+                MutexLockGuard lock(m_mutex);
                 m_conn.reset();
                 m_client.disconnect();
                 m_connect = false;
@@ -75,7 +75,7 @@ private:
     EventLoop *m_loop;
     TcpConnectionPtr m_conn;
     TcpClient m_client;
-    Mutex m_mutex;
+    mutable MutexLock m_mutex;
 };
 
 int main() {

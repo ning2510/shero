@@ -96,12 +96,13 @@ void Timer::timerDestroyed() {
 void Timer::addTimer(TimerEvent::ptr timer, bool reset /*= true*/) {
     bool need = false;
 
-    RWMutexType::WriteLock lock(m_mutex);
-    if(m_timers.empty() || timer->getArrive() < (*m_timers.begin())->getArrive()) {
-        need = true;
+    {
+        MutexLockGuard lock(m_mutex);
+        if(m_timers.empty() || timer->getArrive() < (*m_timers.begin())->getArrive()) {
+            need = true;
+        }
+        m_timers.insert(timer);
     }
-    m_timers.insert(timer);
-    lock.unlock();
 
     if(need && reset) {
         resetArriveTime();
@@ -116,21 +117,21 @@ TimerEvent::ptr Timer::addTimer(uint64_t interval,
 }
 
 void Timer::delTimer(TimerEvent::ptr timer) {
-    RWMutexType::ReadLock rlock(m_mutex);
-    auto it = m_timers.find(timer);
-    if(it == m_timers.end()) {
-        return ;
-    }
-    rlock.unlock();
+    bool reset;
+    {
+        MutexLockGuard lock(m_mutex);
+        auto it = m_timers.find(timer);
+        if(it == m_timers.end()) {
+            return ;
+        }
 
-    RWMutexType::WriteLock wlock(m_mutex);
-    // if the first timer is deleted
-    bool reset = (it == m_timers.begin());
-    m_timers.erase(it);
-    // and the arrival time of this timer is greater than the arrival 
-    // time of the next timer, then call resetArriveTime()
-    reset = reset && (*it)->getArrive() < (*m_timers.begin())->getArrive();
-    wlock.unlock();
+        reset = (it == m_timers.begin());
+        // if the first timer is deleted
+        m_timers.erase(it);
+        // and the arrival time of this timer is greater than the arrival 
+        // time of the next timer, then call resetArriveTime()
+        reset = reset && (*it)->getArrive() < (*m_timers.begin())->getArrive();
+    }
 
     if(reset) {
         resetArriveTime();
@@ -138,29 +139,33 @@ void Timer::delTimer(TimerEvent::ptr timer) {
 }
 
 bool Timer::hasTimer() {
-    RWMutexType::ReadLock lock(m_mutex);
+    MutexLockGuard lock(m_mutex);
     return !m_timers.empty();
 }
 
 void Timer::resetArriveTime() {
-    RWMutexType::ReadLock rlock(m_mutex);
-    if(m_timers.empty()) {
-        return ;
+    {
+        MutexLockGuard lock(m_mutex);
+        if(m_timers.empty()) {
+            return ;
+        }
     }
-    rlock.unlock();
 
     uint64_t now = GetCurrentMS();
-    RWMutexType::WriteLock wlock(m_mutex);
-    while(!m_timers.empty() && (*m_timers.begin())->getArrive() < now) {
-        auto it = m_timers.begin();
-        m_timers.erase(it);
-    }
-    if(m_timers.empty()) {
-        return ;
-    }
+    uint64_t diff;
+    {
+        MutexLockGuard lock(m_mutex);
+        while(!m_timers.empty() && (*m_timers.begin())->getArrive() < now) {
+            auto it = m_timers.begin();
+            m_timers.erase(it);
+        }
 
-    uint64_t diff = (*m_timers.begin())->getArrive() - now;
-    wlock.unlock();
+        if(m_timers.empty()) {
+            return ;
+        }
+
+        diff = (*m_timers.begin())->getArrive() - now;
+    }
 
     struct itimerspec ts;
     bzero(&ts, sizeof(ts));
@@ -182,19 +187,20 @@ void Timer::onTimer() {
     uint64_t now = GetCurrentMS();
     std::vector<TimerEvent::ptr> recyTimer;
     std::vector<TimerEvent::ptr> readyTimer;
-    
-    RWMutexType::WriteLock lock(m_mutex);
-    auto it = m_timers.begin();
-    for(it = m_timers.begin(); it != m_timers.end(); it++) {
-        if((*it)->getArrive() > now) break;
-        if((*it)->isRecycle()) {
-            (*it)->resetArrive();
-            recyTimer.push_back(*it);
+
+    {
+        MutexLockGuard lock(m_mutex);
+        auto it = m_timers.begin();
+        for(it = m_timers.begin(); it != m_timers.end(); it++) {
+            if((*it)->getArrive() > now) break;
+            if((*it)->isRecycle()) {
+                (*it)->resetArrive();
+                recyTimer.push_back(*it);
+            }
+            readyTimer.push_back(*it);
         }
-        readyTimer.push_back(*it);
+        m_timers.erase(m_timers.begin(), it);
     }
-    m_timers.erase(m_timers.begin(), it);
-    lock.unlock();
 
     for(auto &i : recyTimer) {
         // 这里 addTimer 时 reset 如果为 true，则有可能执行两次 resetArriveTime()

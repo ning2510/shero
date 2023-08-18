@@ -42,6 +42,11 @@ SET(SRC_FILES
     shero/net/http/HttpDispatch.cc
     shero/net/http/client/HttpClient.cc
     shero/net/http/client/HttpClientParser.cc
+    shero/net/websocket/WSClient.cc
+    shero/net/websocket/WSServer.cc
+    shero/net/websocket/WSServlet.cc
+    shero/net/websocket/WSDispatch.cc
+    shero/net/websocket/WSStructure.cc
 )
 
 ragelmaker(shero/net/Uri.rl SRC_FILES ${CMAKE_CURRENT_SOURCE_DIR}/shero/net)

@@ -30,10 +30,10 @@ TcpConnection::TcpConnection(int32_t connfd, EventLoop *subLoop,
 }
 
 TcpConnection::~TcpConnection() {
-    assert(m_state == Disconnected);
     m_stop = true;
     LOG_INFO << "TcpConnection destructor [" << m_name 
         << "], connfd = " << m_connfd;
+    assert(m_state == Disconnected);
 }
 
 void TcpConnection::connectEstablished() {

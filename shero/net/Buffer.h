@@ -107,6 +107,11 @@ public:
         return retrieveAsString(readableBytes());
     }
 
+    // debug
+    std::string toString() const {
+        return std::string(readIndex(), readableBytes());
+    }
+
     const char *findCRLF() const {
         const char *crlf = std::search(readIndex(), writeIndex(), kCRLF, kCRLF + 2);
         return crlf == writeIndex() ? NULL : crlf;

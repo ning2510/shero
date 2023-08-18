@@ -1,5 +1,5 @@
-#ifndef __SHERO_HTTPPARSER_H
-#define __SHERO_HTTPPARSER_H
+#ifndef __SHERO_HTTPCLIENTPARSER_H
+#define __SHERO_HTTPCLIENTPARSER_H
 
 #include "shero/net/http/HttpCommon.h"
 #include "shero/net/http/client/httpclient_parser.h"

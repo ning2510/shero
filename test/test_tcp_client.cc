@@ -25,7 +25,9 @@ public:
         m_client.setMessageCallback(std::bind(&EchoClient::onMessage, this, _1, _2));
     }
 
-    ~EchoClient() {}
+    ~EchoClient() {
+        disconnect();
+    }
 
     void connect() {
         m_client.connect();
@@ -82,7 +84,8 @@ int main() {
     EventLoopThread loopThread;
     Address server(6666);
 
-    EchoClient client(loopThread.startLoop(), server, "echoClient");
+    EventLoop *loop = loopThread.startLoop();
+    EchoClient client(loop, server, "echoClient");
     client.connect();
 
     string msg;
@@ -95,6 +98,6 @@ int main() {
         client.send(msg);
     }
 
-
+    client.disconnect();
     return 0;
 }

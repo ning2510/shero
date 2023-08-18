@@ -36,7 +36,7 @@ void HttpServer::onConnection(const TcpConnectionPtr &conn) {
 }
 
 void HttpServer::onMessage(const TcpConnectionPtr &conn, Buffer *buf) {
-    HttpParser* parser = boost::any_cast<HttpParser>(conn->getMutableContext());
+    HttpParser* parser = conn->getMutableContext();
 
     if(!parser->parserHttpRequest(buf)) {
         conn->send("HTTP/1.1 400 Bad Request\r\n\r\n");

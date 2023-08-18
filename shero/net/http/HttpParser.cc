@@ -1,5 +1,7 @@
 #include "shero/net/http/HttpParser.h"
 
+#include <iostream>
+
 namespace shero {
 namespace http {
 

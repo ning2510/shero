@@ -11,9 +11,9 @@ using namespace std::placeholders;
 
 EventLoop loop;
 
-// void Quit(int sig) {
-//     loop.quit();
-// }
+void Quit(int sig) {
+    loop.quit();
+}
 
 class EchoServer {
 public:
@@ -53,7 +53,7 @@ private:
 };
 
 int main() {
-    // signal(SIGINT, Quit);
+    signal(SIGINT, Quit);
 
     std::cout << "Server tid = " << GetThreadId() 
         << ", main loop = " << &loop << std::endl;

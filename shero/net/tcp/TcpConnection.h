@@ -6,11 +6,10 @@
 #include "shero/net/Buffer.h"
 #include "shero/base/Noncopyable.h"
 #include "shero/net/tcp/Callbacks.h"
+#include "shero/net/http/HttpParser.h"
 
 #include <atomic>
 #include <memory>
-
-#include <boost/any.hpp>    //DELETE
 
 namespace shero {
 
@@ -46,14 +45,13 @@ public:
     void setWriteCompleteCallback(const WriteCompleteCallback &cb) { m_writeCompleteCallback = cb; }
 
 
-    // DELETE
-    void setContext(const boost::any &context)
+    void setContext(const http::HttpParser &context)
     { context_ = context; }
 
-    const boost::any &getContext() const
+    const http::HttpParser &getContext() const
     { return context_; }
 
-    boost::any *getMutableContext()
+    http::HttpParser *getMutableContext()
     { return &context_; }
 
 private:
@@ -96,8 +94,7 @@ private:
     MessageCallback m_messageCallback;
     WriteCompleteCallback m_writeCompleteCallback;
 
-    // DELETE
-    boost::any context_;
+    http::HttpParser context_;
 };
 
 typedef std::shared_ptr<TcpConnection> TcpConnectionPtr;

@@ -24,3 +24,9 @@ target_link_libraries(test_http_server ${LIBS})
 
 add_executable(test_http_client ./test_http_client.cc)
 target_link_libraries(test_http_client ${LIBS})
+
+add_executable(test_ws_server ./test_ws_server.cc)
+target_link_libraries(test_ws_server ${LIBS})
+
+add_executable(test_ws_client ./test_ws_client.cc)
+target_link_libraries(test_ws_client ${LIBS})

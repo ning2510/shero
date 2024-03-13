@@ -53,11 +53,28 @@ std::string Time2Str(time_t ts /*= time(0)*/, const std::string &format /*= "%Y-
     return buf;
 }
 
-std::string SHA1sum(const std::string &data) {
-    return SHA1sum(data.c_str(), data.size());
-}
+std::string SHA1sum(const std::string &str) {
+#if defined(OPENSSL_VERSION_MAJOR) && OPENSSL_VERSION_MAJOR >= 3
+    EVP_MD_CTX *ctx = EVP_MD_CTX_new();
+    std::string result;
+    if (ctx != nullptr) {
+        unsigned char hash[EVP_MAX_MD_SIZE];
+        unsigned int lengthOfHash = 0;
 
-std::string SHA1sum(const void *data, size_t len) {
+        if (EVP_DigestInit_ex(ctx, EVP_sha1(), nullptr)) {
+            if (EVP_DigestUpdate(ctx, str.c_str(), str.size())) {
+                if (EVP_DigestFinal_ex(ctx, hash, &lengthOfHash)) {
+                    result.resize(lengthOfHash);
+                    std::copy(hash, hash + lengthOfHash, result.begin());
+                }
+            }
+        }
+        EVP_MD_CTX_free(ctx);
+    }
+    return result;
+#else
+    const void *data = str.c_str();
+    size_t len = str.size();
     SHA_CTX ctx;
     SHA1_Init(&ctx);
     SHA1_Update(&ctx, data, len);
@@ -65,6 +82,7 @@ std::string SHA1sum(const void *data, size_t len) {
     result.resize(SHA_DIGEST_LENGTH);
     SHA1_Final((unsigned char*)&result[0], &ctx);
     return result;
+#endif
 }
 
 std::string Encodebase64(const std::string &data) {

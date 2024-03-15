@@ -225,13 +225,18 @@ $ sudo cp -r lib/libshero.a /usr/local/lib
 
 #### 3.6 引入 shero 到您的项目
 
-引入 `shero` 的一个例子在 `test/example` 中
+> **须安装 `shero`**
 
-```shell
-$ cd test/example
-$ mkdir build && cd build
-$ cmake .. && make -j8
-```
+在自己的项目中使用 `shero` 的例子在 `test/use_shero` 中
+
+`shero` 的依赖库：
+
+- `pthread`
+- `openssl`
+- `yaml-cpp`
+- `tinyxml`
+
+按照 `test/use_shero/CMakeLists.txt` 编写您项目的 `CMake` 即可
 
 
 
@@ -303,6 +308,7 @@ $ cmake .. && make -j8
 - 值小于 `126`，正常往后读取对应长度的 `Payload` 数据
 - 值小于 `65536`，往后再读取 `16 bits` 的数据，该数据为 `Payload` 真正的长度
 - 值大于等于 `65536`，往后再读取 `64 bits` 的数据，该数据为 `Payload` 真正的长度
+
 
 
 **后续待补充...**

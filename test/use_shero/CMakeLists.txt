@@ -16,4 +16,4 @@ SET(LIBS
 )
 
 add_executable(test_tcp_server test_tcp_server.cc)
-target_link_libraries(test_tcp_server pthread ${LIBS})
+target_link_libraries(test_tcp_server ${LIBS})

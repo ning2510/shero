@@ -164,7 +164,7 @@ $ mkdir build && cd build
 $ cmake .. && make -j8
 $ sudo cp libyaml-cpp.a /usr/local/lib/
 $ cd ../include
-$ sudo cp yaml-cpp /usr/local/include
+$ sudo cp -r yaml-cpp /usr/local/include
 ```
 
 
@@ -303,7 +303,7 @@ $ sudo cp -r lib/libshero.a /usr/local/lib
 
 ![](./images/2.png)
 
-7位 `Payload` 的长度有以下几种情况：
+7位 `Payload` 长度的取值有以下几种情况：
 
 - 值小于 `126`，正常往后读取对应长度的 `Payload` 数据
 - 值小于 `65536`，往后再读取 `16 bits` 的数据，该数据为 `Payload` 真正的长度

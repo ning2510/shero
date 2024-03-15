@@ -25,4 +25,4 @@ mkdir -p ${BUILD_DIR} ${BIN_DIR} ${LIB_DIR} ${INCLUDE_DIR} \
         -DBENCH_MARK=$BENCH_MARK \
         -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
         .. \
-    && make install
+    && make install -j$(nproc)

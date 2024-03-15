@@ -1,10 +1,6 @@
 name: C/C++ CI
 
-on:
-  push:
-    branches: [ "master" ]
-  pull_request:
-    branches: [ "master" ]
+on: [push, pull_request]
 
 jobs:
   ububtu-cmake:
@@ -15,16 +11,27 @@ jobs:
       run: |
         sudo apt-get update
         sudo apt-get install cmake g++ make
+        sudo apt install ragel
 
     - name: install tinyxml
       run: |
-        sudo chmod +x ./scripts/install_tinyxml.sh
-        ./install_tinyxml.sh
+        git clone git://git.code.sf.net/p/tinyxml/git tinyxml
+        cd tinyxml
+        make -j$(nproc)
+        ar cr libtinyxml.a *o
+        sudo cp libtinyxml.a /usr/local/lib/
+        sudo mkdir /usr/local/include/tinyxml
+        sudo cp *.h /usr/local/include/tinyxml
 
     - name: install yaml-cpp
       run: |
-        sudo chmod +x ./scripts/install_yamlcpp.sh
-        ./install_yamlcpp.sh
+        git clone https://github.com/jbeder/yaml-cpp.git
+        cd yaml-cpp
+        mkdir build && cd build
+        cmake .. && make -j$(nproc)
+        sudo cp libyaml-cpp.a /usr/local/lib/
+        cd ../include
+        sudo cp -r yaml-cpp /usr/local/include
 
     - uses: actions/checkout@v3
 

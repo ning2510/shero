@@ -1,0 +1,1 @@
+/usr/bin/c++     CMakeFiles/test_tcp_server.dir/test_tcp_server.cc.o  -o test_tcp_server /usr/local/lib/libshero.a -lpthread -ldl /usr/local/lib/libyaml-cpp.a /usr/lib/libtinyxml.a /usr/lib/x86_64-linux-gnu/libssl.so /usr/lib/x86_64-linux-gnu/libcrypto.so 

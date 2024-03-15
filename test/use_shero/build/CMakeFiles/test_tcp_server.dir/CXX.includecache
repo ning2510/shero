@@ -1,0 +1,22 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/hadoop/shero/test/use_shero/test_tcp_server.cc
+shero/base/Log.h
+/home/hadoop/shero/test/use_shero/shero/base/Log.h
+shero/base/Util.h
+/home/hadoop/shero/test/use_shero/shero/base/Util.h
+shero/net/Address.h
+/home/hadoop/shero/test/use_shero/shero/net/Address.h
+shero/net/EventLoop.h
+/home/hadoop/shero/test/use_shero/shero/net/EventLoop.h
+shero/net/tcp/TcpServer.h
+/home/hadoop/shero/test/use_shero/shero/net/tcp/TcpServer.h
+signal.h
+-
+

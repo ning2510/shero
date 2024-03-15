@@ -1,0 +1,85 @@
+[2024-03-15 17:27:01]	[INFO]	[13150]	[13150]	[0]	[/home/hadoop/shero/shero/net/EventLoop.cc:33]	eventFd() success, event fd = 3
+[2024-03-15 17:27:01]	[INFO]	[13150]	[13150]	[0]	[/home/hadoop/shero/shero/net/Channel.cc:21]	new Channel created, loop = 0x5602d9d9d140, fd = 3
+[2024-03-15 17:27:01]	[INFO]	[13150]	[13150]	[0]	[/home/hadoop/shero/shero/net/Channel.cc:147]	Channel Manager new a channel, fd = 3
+[2024-03-15 17:27:01]	[DEBUG]	[13150]	[13150]	[0]	[/home/hadoop/shero/shero/coroutine/Hook.cc:198]	[socket] g_hook_enable is 1, current coroutine is main coroutine 1
+[2024-03-15 17:27:01]	[DEBUG]	[13150]	[13150]	[0]	[/home/hadoop/shero/shero/net/Socket.cc:64]	Socket::init() socket fd = 6
+[2024-03-15 17:27:01]	[INFO]	[13150]	[13150]	[0]	[/home/hadoop/shero/shero/net/Channel.cc:21]	new Channel created, loop = 0x5602d9d9d140, fd = 6
+[2024-03-15 17:27:01]	[INFO]	[13150]	[13150]	[0]	[/home/hadoop/shero/shero/net/Channel.cc:147]	Channel Manager new a channel, fd = 6
+[2024-03-15 17:27:01]	[INFO]	[13150]	[13152]	[0]	[/home/hadoop/shero/shero/net/EventLoop.cc:33]	eventFd() success, event fd = 7
+[2024-03-15 17:27:01]	[INFO]	[13150]	[13152]	[0]	[/home/hadoop/shero/shero/net/Channel.cc:21]	new Channel created, loop = 0x7f1bfe211ca0, fd = 7
+[2024-03-15 17:27:01]	[INFO]	[13150]	[13152]	[0]	[/home/hadoop/shero/shero/net/Channel.cc:147]	Channel Manager new a channel, fd = 7
+[2024-03-15 17:27:01]	[DEBUG]	[13150]	[13152]	[0]	[/home/hadoop/shero/shero/net/EventLoop.cc:95]	EventLoop [0x7f1bfe211ca0] start loop
+[2024-03-15 17:27:01]	[DEBUG]	[13150]	[13150]	[1]	[/home/hadoop/shero/shero/coroutine/Hook.cc:217]	accept hook start, fd = 6, current EventLoop = 0x5602d9d9d140
+[2024-03-15 17:27:01]	[DEBUG]	[13150]	[13150]	[1]	[/home/hadoop/shero/shero/coroutine/Hook.cc:238]	accept hook, fd = 6 coroutine[0x5602db41a9b0] Yield, current EventLoop = 0x5602d9d9d140
+[2024-03-15 17:27:01]	[DEBUG]	[13150]	[13150]	[0]	[/home/hadoop/shero/shero/net/EventLoop.cc:95]	EventLoop [0x5602d9d9d140] start loop
+[2024-03-15 17:27:06]	[DEBUG]	[13150]	[13150]	[0]	[/home/hadoop/shero/shero/net/EPollPoller.cc:30]	1 events happened
+[2024-03-15 17:27:06]	[DEBUG]	[13150]	[13150]	[0]	[/home/hadoop/shero/shero/net/EPollPoller.cc:112]	fd = 6 events = 1 channel = 0x5602db421000
+[2024-03-15 17:27:06]	[DEBUG]	[13150]	[13150]	[0]	[/home/hadoop/shero/shero/coroutine/Hook.cc:233]	accept resume, current EventLoop = 0x5602d9d9d140
+[2024-03-15 17:27:06]	[DEBUG]	[13150]	[13150]	[1]	[/home/hadoop/shero/shero/coroutine/Hook.cc:245]	accept hook, fd = 6 coroutine[0x5602db41a9b0] Resume, current EventLoop = 0x5602d9d9d140
+[2024-03-15 17:27:06]	[INFO]	[13150]	[13150]	[1]	[/home/hadoop/shero/shero/net/tcp/TcpServer.cc:69]	TcpServer::newConnection [EchoServer0.0.0.0:6666#1] created, current loop = 0x7f1bfe211ca0, connfd = 9
+[2024-03-15 17:27:06]	[INFO]	[13150]	[13150]	[1]	[/home/hadoop/shero/shero/net/Channel.cc:21]	new Channel created, loop = 0x7f1bfe211ca0, fd = 9
+[2024-03-15 17:27:06]	[INFO]	[13150]	[13150]	[1]	[/home/hadoop/shero/shero/net/Channel.cc:147]	Channel Manager new a channel, fd = 9
+[2024-03-15 17:27:06]	[INFO]	[13150]	[13150]	[1]	[/home/hadoop/shero/shero/net/tcp/TcpConnection.cc:35]	[Server] TcpConnection constructor [EchoServer0.0.0.0:6666#1], connfd = 9
+[2024-03-15 17:27:06]	[DEBUG]	[13150]	[13150]	[1]	[/home/hadoop/shero/shero/coroutine/Hook.cc:157]	write hook start, fd = 7, current EventLoop = 0x5602d9d9d140
+[2024-03-15 17:27:06]	[WARN]	[13150]	[13150]	[1]	[/home/hadoop/shero/shero/net/Channel.cc:138]	getChannel exist, fd = 7, loop = 0x7f1bfe211ca0, now loop = 0x5602d9d9d140, don't worry! it may be trying to wake up the loop[0x7f1bfe211ca0]
+[2024-03-15 17:27:06]	[INFO]	[13150]	[13150]	[1]	[/home/hadoop/shero/shero/net/EventLoop.cc:169]	EventLoop::wakeup() write, event loop = 0x7f1bfe211ca0
+[2024-03-15 17:27:06]	[DEBUG]	[13150]	[13150]	[1]	[/home/hadoop/shero/shero/coroutine/Hook.cc:217]	accept hook start, fd = 6, current EventLoop = 0x5602d9d9d140
+[2024-03-15 17:27:06]	[DEBUG]	[13150]	[13152]	[0]	[/home/hadoop/shero/shero/net/EPollPoller.cc:30]	1 events happened
+[2024-03-15 17:27:06]	[DEBUG]	[13150]	[13152]	[0]	[/home/hadoop/shero/shero/net/EPollPoller.cc:112]	fd = 7 events = 1 channel = 0x7f1bf00013b0
+[2024-03-15 17:27:06]	[DEBUG]	[13150]	[13152]	[0]	[/home/hadoop/shero/shero/coroutine/Hook.cc:61]	[read] g_hook_enable is 1, current coroutine is main coroutine 1
+[2024-03-15 17:27:06]	[INFO]	[13150]	[13152]	[0]	[/home/hadoop/shero/shero/net/EventLoop.cc:177]	EventLoop::wakeup() read, event loop = 0x7f1bfe211ca0
+[2024-03-15 17:27:06]	[INFO]	[13150]	[13152]	[0]	[/home/hadoop/shero/test/use_shero/test_tcp_server.cc:38]	Connection UP : 127.0.0.1:54026
+[2024-03-15 17:27:06]	[DEBUG]	[13150]	[13150]	[1]	[/home/hadoop/shero/shero/coroutine/Hook.cc:238]	accept hook, fd = 6 coroutine[0x5602db41a9b0] Yield, current EventLoop = 0x5602d9d9d140
+[2024-03-15 17:27:06]	[DEBUG]	[13150]	[13152]	[2]	[/home/hadoop/shero/shero/coroutine/Hook.cc:112]	readv hook start, fd = 9, current EventLoop = 0x7f1bfe211ca0
+[2024-03-15 17:27:06]	[INFO]	[13150]	[13152]	[2]	[/home/hadoop/shero/shero/net/Channel.cc:83]	set nonblock success, fd = 9
+[2024-03-15 17:27:06]	[DEBUG]	[13150]	[13152]	[2]	[/home/hadoop/shero/shero/coroutine/Hook.cc:133]	readv hook, fd = 9 coroutine[0x5602db41aa80] Yield, current EventLoop = 0x7f1bfe211ca0
+[2024-03-15 17:27:07]	[DEBUG]	[13150]	[13152]	[0]	[/home/hadoop/shero/shero/net/EPollPoller.cc:30]	1 events happened
+[2024-03-15 17:27:07]	[DEBUG]	[13150]	[13152]	[0]	[/home/hadoop/shero/shero/net/EPollPoller.cc:112]	fd = 9 events = 1 channel = 0x5602db421770
+[2024-03-15 17:27:07]	[DEBUG]	[13150]	[13152]	[0]	[/home/hadoop/shero/shero/coroutine/Hook.cc:128]	readv resume, current EventLoop = 0x7f1bfe211ca0
+[2024-03-15 17:27:07]	[DEBUG]	[13150]	[13152]	[2]	[/home/hadoop/shero/shero/coroutine/Hook.cc:140]	readv hook, fd = 9 coroutine[0x5602db41aa80] Resume, current EventLoop = 0x7f1bfe211ca0
+[2024-03-15 17:27:07]	[INFO]	[13150]	[13152]	[2]	[/home/hadoop/shero/shero/net/tcp/TcpConnection.cc:130]	send data = EchoServer - awf, len = 16 fd = 9
+[2024-03-15 17:27:07]	[DEBUG]	[13150]	[13152]	[2]	[/home/hadoop/shero/shero/coroutine/Hook.cc:157]	write hook start, fd = 9, current EventLoop = 0x7f1bfe211ca0
+[2024-03-15 17:27:07]	[DEBUG]	[13150]	[13152]	[2]	[/home/hadoop/shero/shero/coroutine/Hook.cc:112]	readv hook start, fd = 9, current EventLoop = 0x7f1bfe211ca0
+[2024-03-15 17:27:07]	[DEBUG]	[13150]	[13152]	[2]	[/home/hadoop/shero/shero/coroutine/Hook.cc:133]	readv hook, fd = 9 coroutine[0x5602db41aa80] Yield, current EventLoop = 0x7f1bfe211ca0
+[2024-03-15 17:27:08]	[DEBUG]	[13150]	[13152]	[0]	[/home/hadoop/shero/shero/net/EPollPoller.cc:30]	1 events happened
+[2024-03-15 17:27:08]	[DEBUG]	[13150]	[13152]	[0]	[/home/hadoop/shero/shero/net/EPollPoller.cc:112]	fd = 9 events = 1 channel = 0x5602db421770
+[2024-03-15 17:27:08]	[DEBUG]	[13150]	[13152]	[0]	[/home/hadoop/shero/shero/coroutine/Hook.cc:128]	readv resume, current EventLoop = 0x7f1bfe211ca0
+[2024-03-15 17:27:08]	[DEBUG]	[13150]	[13152]	[2]	[/home/hadoop/shero/shero/coroutine/Hook.cc:140]	readv hook, fd = 9 coroutine[0x5602db41aa80] Resume, current EventLoop = 0x7f1bfe211ca0
+[2024-03-15 17:27:08]	[INFO]	[13150]	[13152]	[2]	[/home/hadoop/shero/shero/net/tcp/TcpConnection.cc:130]	send data = EchoServer - awfawfaw, len = 21 fd = 9
+[2024-03-15 17:27:08]	[DEBUG]	[13150]	[13152]	[2]	[/home/hadoop/shero/shero/coroutine/Hook.cc:157]	write hook start, fd = 9, current EventLoop = 0x7f1bfe211ca0
+[2024-03-15 17:27:08]	[DEBUG]	[13150]	[13152]	[2]	[/home/hadoop/shero/shero/coroutine/Hook.cc:112]	readv hook start, fd = 9, current EventLoop = 0x7f1bfe211ca0
+[2024-03-15 17:27:08]	[DEBUG]	[13150]	[13152]	[2]	[/home/hadoop/shero/shero/coroutine/Hook.cc:133]	readv hook, fd = 9 coroutine[0x5602db41aa80] Yield, current EventLoop = 0x7f1bfe211ca0
+[2024-03-15 17:27:08]	[DEBUG]	[13150]	[13152]	[0]	[/home/hadoop/shero/shero/net/EPollPoller.cc:30]	1 events happened
+[2024-03-15 17:27:08]	[DEBUG]	[13150]	[13152]	[0]	[/home/hadoop/shero/shero/net/EPollPoller.cc:112]	fd = 9 events = 1 channel = 0x5602db421770
+[2024-03-15 17:27:08]	[DEBUG]	[13150]	[13152]	[0]	[/home/hadoop/shero/shero/coroutine/Hook.cc:128]	readv resume, current EventLoop = 0x7f1bfe211ca0
+[2024-03-15 17:27:08]	[DEBUG]	[13150]	[13152]	[2]	[/home/hadoop/shero/shero/coroutine/Hook.cc:140]	readv hook, fd = 9 coroutine[0x5602db41aa80] Resume, current EventLoop = 0x7f1bfe211ca0
+[2024-03-15 17:27:08]	[INFO]	[13150]	[13152]	[2]	[/home/hadoop/shero/shero/net/tcp/TcpConnection.cc:255]	TcpConnection::handleClose connfd = 9, state = 2
+[2024-03-15 17:27:08]	[INFO]	[13150]	[13152]	[2]	[/home/hadoop/shero/test/use_shero/test_tcp_server.cc:40]	Connection DOWN : 127.0.0.1:54026
+[2024-03-15 17:27:08]	[DEBUG]	[13150]	[13152]	[2]	[/home/hadoop/shero/shero/coroutine/Hook.cc:157]	write hook start, fd = 3, current EventLoop = 0x7f1bfe211ca0
+[2024-03-15 17:27:08]	[WARN]	[13150]	[13152]	[2]	[/home/hadoop/shero/shero/net/Channel.cc:138]	getChannel exist, fd = 3, loop = 0x5602d9d9d140, now loop = 0x7f1bfe211ca0, don't worry! it may be trying to wake up the loop[0x5602d9d9d140]
+[2024-03-15 17:27:08]	[INFO]	[13150]	[13152]	[2]	[/home/hadoop/shero/shero/net/EventLoop.cc:169]	EventLoop::wakeup() write, event loop = 0x5602d9d9d140
+[2024-03-15 17:27:08]	[DEBUG]	[13150]	[13150]	[0]	[/home/hadoop/shero/shero/net/EPollPoller.cc:30]	1 events happened
+[2024-03-15 17:27:08]	[DEBUG]	[13150]	[13150]	[0]	[/home/hadoop/shero/shero/net/EPollPoller.cc:112]	fd = 3 events = 1 channel = 0x5602db417ef0
+[2024-03-15 17:27:08]	[DEBUG]	[13150]	[13150]	[0]	[/home/hadoop/shero/shero/coroutine/Hook.cc:61]	[read] g_hook_enable is 1, current coroutine is main coroutine 1
+[2024-03-15 17:27:08]	[INFO]	[13150]	[13150]	[0]	[/home/hadoop/shero/shero/net/EventLoop.cc:177]	EventLoop::wakeup() read, event loop = 0x5602d9d9d140
+[2024-03-15 17:27:08]	[INFO]	[13150]	[13150]	[0]	[/home/hadoop/shero/shero/net/tcp/TcpServer.cc:91]	TcpServer::removeConnectionInLoop [EchoServer0.0.0.0:6666#1] fd = 9
+[2024-03-15 17:27:08]	[DEBUG]	[13150]	[13150]	[0]	[/home/hadoop/shero/shero/coroutine/Hook.cc:152]	[write] g_hook_enable is 1, current coroutine is main coroutine 1
+[2024-03-15 17:27:08]	[INFO]	[13150]	[13150]	[0]	[/home/hadoop/shero/shero/net/EventLoop.cc:169]	EventLoop::wakeup() write, event loop = 0x7f1bfe211ca0
+[2024-03-15 17:27:08]	[DEBUG]	[13150]	[13152]	[0]	[/home/hadoop/shero/shero/net/EPollPoller.cc:30]	1 events happened
+[2024-03-15 17:27:08]	[DEBUG]	[13150]	[13152]	[0]	[/home/hadoop/shero/shero/net/EPollPoller.cc:112]	fd = 7 events = 1 channel = 0x7f1bf00013b0
+[2024-03-15 17:27:08]	[DEBUG]	[13150]	[13152]	[0]	[/home/hadoop/shero/shero/coroutine/Hook.cc:61]	[read] g_hook_enable is 1, current coroutine is main coroutine 1
+[2024-03-15 17:27:08]	[INFO]	[13150]	[13152]	[0]	[/home/hadoop/shero/shero/net/EventLoop.cc:177]	EventLoop::wakeup() read, event loop = 0x7f1bfe211ca0
+[2024-03-15 17:27:08]	[INFO]	[13150]	[13152]	[0]	[/home/hadoop/shero/shero/net/tcp/TcpConnection.cc:62]	TcpConnection destructor [EchoServer0.0.0.0:6666#1], connfd = 9
+[2024-03-15 17:27:09]	[ERROR]	[13150]	[13150]	[0]	[/home/hadoop/shero/shero/net/EPollPoller.cc:39]	epoll_wait() error, strerror = Interrupted system call
+[2024-03-15 17:27:09]	[DEBUG]	[13150]	[13150]	[0]	[/home/hadoop/shero/shero/net/EventLoop.cc:113]	EventLoop [0x5602d9d9d140] end loop
+[2024-03-15 17:27:09]	[DEBUG]	[13150]	[13150]	[0]	[/home/hadoop/shero/shero/net/EventLoop.cc:95]	EventLoop [0x5602d9d9d140] start loop
+[2024-03-15 17:27:09]	[ERROR]	[13150]	[13150]	[0]	[/home/hadoop/shero/shero/net/EPollPoller.cc:39]	epoll_wait() error, strerror = Interrupted system call
+[2024-03-15 17:27:09]	[DEBUG]	[13150]	[13150]	[0]	[/home/hadoop/shero/shero/net/EventLoop.cc:113]	EventLoop [0x5602d9d9d140] end loop
+[2024-03-15 17:27:09]	[INFO]	[13150]	[13150]	[0]	[/home/hadoop/shero/shero/net/tcp/TcpServer.cc:39]	~TcpServer
+[2024-03-15 17:27:09]	[DEBUG]	[13150]	[13150]	[0]	[/home/hadoop/shero/shero/coroutine/Hook.cc:152]	[write] g_hook_enable is 1, current coroutine is main coroutine 1
+[2024-03-15 17:27:09]	[DEBUG]	[13150]	[13152]	[0]	[/home/hadoop/shero/shero/net/EPollPoller.cc:30]	1 events happened
+[2024-03-15 17:27:09]	[DEBUG]	[13150]	[13152]	[0]	[/home/hadoop/shero/shero/net/EPollPoller.cc:112]	fd = 7 events = 1 channel = 0x7f1bf00013b0
+[2024-03-15 17:27:09]	[DEBUG]	[13150]	[13152]	[0]	[/home/hadoop/shero/shero/coroutine/Hook.cc:61]	[read] g_hook_enable is 1, current coroutine is main coroutine 1
+[2024-03-15 17:27:09]	[INFO]	[13150]	[13152]	[0]	[/home/hadoop/shero/shero/net/EventLoop.cc:177]	EventLoop::wakeup() read, event loop = 0x7f1bfe211ca0
+[2024-03-15 17:27:09]	[DEBUG]	[13150]	[13152]	[0]	[/home/hadoop/shero/shero/net/EventLoop.cc:113]	EventLoop [0x7f1bfe211ca0] end loop
+[2024-03-15 17:27:09]	[INFO]	[13150]	[13150]	[0]	[/home/hadoop/shero/shero/net/EventLoop.cc:169]	EventLoop::wakeup() write, event loop = 0x7f1bfe211ca0

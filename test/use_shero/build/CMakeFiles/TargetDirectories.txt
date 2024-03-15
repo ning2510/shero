@@ -1,0 +1,3 @@
+/home/hadoop/shero/test/use_shero/build/CMakeFiles/rebuild_cache.dir
+/home/hadoop/shero/test/use_shero/build/CMakeFiles/test_tcp_server.dir
+/home/hadoop/shero/test/use_shero/build/CMakeFiles/edit_cache.dir

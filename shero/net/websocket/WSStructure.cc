@@ -61,12 +61,14 @@ std::string WSFrameMessage::EncodeWSFrameMessage(WSFrameMessage::ptr data, bool 
         buf.writeLen(&len, sizeof(len));
     }
 
-    char mask[4];
-    uint32_t rand_value = rand();
-    memcpy(mask, &rand_value, sizeof(mask));
+    char mask[32];
+    for(int i = 0; i < 8; i++) {
+        uint32_t rand_value = rand();
+        memcpy(mask + i * 4, &rand_value, 4);
+    }
     std::string& msg = data->getData();
     for(size_t i = 0; i < msg.size(); ++i) {
-        msg[i] ^= mask[i % 4];
+        msg[i] ^= mask[i % 32];
     }
 
     buf.writeLen(mask, sizeof(mask));
@@ -126,7 +128,7 @@ WSFrameMessage::ptr WSFrameMessage::DecodeWSFrameMessage(Buffer *buf) {
                 }
 
                 // read mask
-                char mask[4] = {0};
+                char mask[32] = {0};
                 if(buf->readableBytes() < sizeof(mask)) {
                     LOG_ERROR << "Decode websocket frame message error";
                     return nullptr;
@@ -143,7 +145,7 @@ WSFrameMessage::ptr WSFrameMessage::DecodeWSFrameMessage(Buffer *buf) {
 
                 if(head.mask) {
                     for(int32_t i = 0; i < (int32_t)length; i++) {
-                        data[cur_len + i] ^= mask[i % 4];
+                        data[cur_len + i] ^= mask[i % 32];
                     }
                 }
                 cur_len += length;

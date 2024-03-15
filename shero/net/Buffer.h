@@ -3,6 +3,7 @@
 
 #include "shero/base/Endian.h"
 
+#include <string>
 #include <vector>
 #include <memory>
 #include <assert.h>

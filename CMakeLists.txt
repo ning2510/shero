@@ -3,9 +3,10 @@ project(shero)
 
 enable_language(ASM)
 SET(CMAKE_VERBOSE_MAKEFILE ON)
-SET(CMAKE_CXX_FLAGS "$ENV{CXXFLAGS} -rdynamic -O0 -ggdb -std=c++11 -Wall -Wno-deprecated -Werror -Wno-unused-function -Wno-builtin-macro-redefined")
+SET(CMAKE_CXX_FLAGS "$ENV{CXXFLAGS} -rdynamic -O0 -ggdb -std=c++11 -fPIC -Wall -Wno-deprecated -Werror -Wno-unused-function -Wno-builtin-macro-redefined")
 SET(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
 SET(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
+SET(CMAKE_INSTALL_PREFIX ${PROJECT_SOURCE_DIR})
 
 include(cmake/utils.cmake)
 include_directories(.)
@@ -59,7 +60,7 @@ ragelmaker(shero/net/Uri.rl SRC_FILES ${CMAKE_CURRENT_SOURCE_DIR}/shero/net)
 ragelmaker(shero/net/http/client/httpclient_parser.rl SRC_FILES ${CMAKE_CURRENT_SOURCE_DIR}/shero/net/http/client)
 
 SET(COXTX shero/coroutine/coctx_swap.S)
-add_library(shero SHARED ${SRC_FILES} ${COXTX})
+add_library(shero STATIC ${SRC_FILES} ${COXTX})
 
 find_library(YAMLCPP yaml-cpp REQUIRED)
 find_library(TINYXML tinyxml REQUIRED)
@@ -78,3 +79,12 @@ SET(LIBS
 )
 
 add_subdirectory(test)
+
+# install *.h
+add_subdirectory(shero/base)
+add_subdirectory(shero/coroutine)
+add_subdirectory(shero/net)
+add_subdirectory(shero/net/http)
+add_subdirectory(shero/net/http/client)
+add_subdirectory(shero/net/tcp)
+add_subdirectory(shero/net/websocket)

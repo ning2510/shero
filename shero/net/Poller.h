@@ -4,6 +4,7 @@
 #include "shero/base/Noncopyable.h"
 
 #include <vector>
+#include <inttypes.h>
 #include <unordered_map>
 
 namespace shero {

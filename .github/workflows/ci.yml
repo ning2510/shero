@@ -31,6 +31,6 @@ jobs:
     - name: make shero
       run: |
         sudo chmod +x build.sh
-        ./build.sh
+        ./build.sh release
 
 

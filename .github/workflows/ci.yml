@@ -1,0 +1,36 @@
+name: C/C++ CI
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+jobs:
+  ububtu-cmake:
+    name: ubuntu
+    runs-on: ubuntu-latest
+    steps:
+    - name: setup
+      run: |
+        sudo apt-get update
+        sudo apt-get install cmake g++ make
+
+    - name: install tinyxml
+      run: |
+        sudo chmod +x ./scripts/install_tinyxml.sh
+        ./install_tinyxml.sh
+
+    - name: install yaml-cpp
+      run: |
+        sudo chmod +x ./scripts/install_yamlcpp.sh
+        ./install_yamlcpp.sh
+
+    - uses: actions/checkout@v3
+
+    - name: make shero
+      run: |
+        sudo chmod +x build.sh
+        ./build.sh
+
+

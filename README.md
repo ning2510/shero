@@ -217,7 +217,7 @@ $ ./build.sh release
 #### 3.5 安装 shero
 
 ```shell
-$ sudo cp -r include/ /usr/local/include
+$ sudo cp -r include/shero/ /usr/local/include
 $ sudo cp -r lib/libshero.a /usr/local/lib
 ```
 

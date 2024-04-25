@@ -88,3 +88,6 @@ add_subdirectory(shero/net/http)
 add_subdirectory(shero/net/http/client)
 add_subdirectory(shero/net/tcp)
 add_subdirectory(shero/net/websocket)
+
+# generate libshero.a
+add_library(shero STATIC ${SRC_FILES})
